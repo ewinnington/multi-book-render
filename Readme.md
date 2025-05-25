@@ -33,6 +33,6 @@ It is based on .net9
 
 MBR doesn not use a database. 
 For the .md files, it goes to a folder on disk. Each book is a separate folder, with each chapter as a separate .md file.
-For the images, it goes to a folder on disk. Each book is a separate folder, with each image in a subfolder called "images".
+For the images, it goes to a folder on disk. Each book is a separate folder, with each image in a subfolder called "assets".
 For any settings, use .json files for storage in the book for per book settings and in a siteconfig.json for site wide settings, user.json for the users. This makes moving and backing up the site more efficient. 
 

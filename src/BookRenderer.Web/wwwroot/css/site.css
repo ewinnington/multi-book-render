@@ -1,0 +1,138 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
+}
+
+/* Book reading styles */
+.chapter-content {
+  line-height: 1.7;
+}
+
+.chapter-content h1, .chapter-content h2, .chapter-content h3, .chapter-content h4, .chapter-content h5, .chapter-content h6 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.chapter-content p {
+  margin-bottom: 1rem;
+}
+
+.chapter-content blockquote {
+  border-left: 4px solid #0d6efd;
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  background-color: #f8f9fa;
+  padding: 1rem;
+}
+
+.chapter-content pre {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.chapter-content code {
+  background-color: #f8f9fa;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.chapter-content pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* Executable code blocks */
+.executable-code-block {
+  border: 1px solid #e9ecef;
+  border-radius: 0.375rem;
+  margin: 1rem 0;
+}
+
+.code-header {
+  background-color: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.execute-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.execute-btn:hover {
+  background-color: #218838;
+}
+
+.code-output {
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  padding: 1rem;
+  font-family: 'Courier New', monospace;
+  white-space: pre-wrap;
+}
+
+/* Table of contents styles */
+.sidebar {
+  border-radius: 0.375rem;
+}
+
+.sidebar .nav-link {
+  color: #6c757d;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.sidebar .nav-link:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.sidebar .nav-link.active {
+  background-color: #0d6efd;
+  color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+  .sidebar {
+    position: static !important;
+    margin-bottom: 2rem;
+  }
+}

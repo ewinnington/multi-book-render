@@ -1,0 +1,156 @@
+@model BookRenderer.Core.Models.Chapter
+
+@{
+    ViewData["Title"] = ViewBag.CurrentChapter?.Title + " - " + ViewBag.Book?.Title;
+    var book = ViewBag.Book as BookRenderer.Core.Models.Book;
+    var currentChapter = ViewBag.CurrentChapter as BookRenderer.Core.Models.Chapter;
+    var allChapters = ViewBag.AllChapters as List<BookRenderer.Core.Models.Chapter>;
+}
+
+<div class="row">
+    <!-- Sidebar with Table of Contents -->
+    <div class="col-md-3 col-lg-2">
+        <div class="sidebar bg-light p-3" style="position: sticky; top: 20px; max-height: 90vh; overflow-y: auto;">
+            <h6 class="sidebar-heading">@book?.Title</h6>
+            <nav class="nav nav-pills flex-column">
+                @if (allChapters != null)
+                {
+                    @foreach (var chapter in allChapters)
+                    {
+                        <a class="nav-link @(chapter.Id == currentChapter?.Id ? "active" : "")" 
+                           href="@Url.Action("Read", "Book", new { id = book?.Id, chapter = chapter.Order })">
+                            <small>@chapter.Order.</small> @chapter.Title
+                        </a>
+                    }
+                }
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9 col-lg-10">
+        <div class="chapter-content">
+            <!-- Navigation buttons -->
+            <div class="chapter-navigation mb-4">
+                @if (currentChapter?.Order > 1)
+                {
+                    var prevChapter = allChapters?.FirstOrDefault(c => c.Order == currentChapter.Order - 1);
+                    if (prevChapter != null)
+                    {
+                        <a href="@Url.Action("Read", "Book", new { id = book?.Id, chapter = prevChapter.Order })" 
+                           class="btn btn-outline-primary">
+                            ← Previous: @prevChapter.Title
+                        </a>
+                    }
+                }
+                
+                @if (allChapters != null && currentChapter?.Order < allChapters.Max(c => c.Order))
+                {
+                    var nextChapter = allChapters.FirstOrDefault(c => c.Order == currentChapter.Order + 1);
+                    if (nextChapter != null)
+                    {
+                        <a href="@Url.Action("Read", "Book", new { id = book?.Id, chapter = nextChapter.Order })" 
+                           class="btn btn-outline-primary float-end">
+                            Next: @nextChapter.Title →
+                        </a>
+                    }
+                }
+            </div>
+
+            <!-- Chapter content -->
+            <div class="chapter-body">
+                <div id="chapter-content" data-book-id="@book?.Id" data-chapter-id="@currentChapter?.Id">
+                    <!-- Content will be loaded here -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading chapter content...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation buttons (bottom) -->
+            <div class="chapter-navigation mt-5 pt-4 border-top">
+                @if (currentChapter?.Order > 1)
+                {
+                    var prevChapter = allChapters?.FirstOrDefault(c => c.Order == currentChapter.Order - 1);
+                    if (prevChapter != null)
+                    {
+                        <a href="@Url.Action("Read", "Book", new { id = book?.Id, chapter = prevChapter.Order })" 
+                           class="btn btn-outline-primary">
+                            ← Previous: @prevChapter.Title
+                        </a>
+                    }
+                }
+                
+                @if (allChapters != null && currentChapter?.Order < allChapters.Max(c => c.Order))
+                {
+                    var nextChapter = allChapters.FirstOrDefault(c => c.Order == currentChapter.Order + 1);
+                    if (nextChapter != null)
+                    {
+                        <a href="@Url.Action("Read", "Book", new { id = book?.Id, chapter = nextChapter.Order })" 
+                           class="btn btn-outline-primary float-end">
+                            Next: @nextChapter.Title →
+                        </a>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadChapterContent();
+            initializeMath();
+            initializeMermaid();
+        });
+
+        async function loadChapterContent() {
+            const contentDiv = document.getElementById('chapter-content');
+            const bookId = contentDiv.dataset.bookId;
+            const chapterId = contentDiv.dataset.chapterId;
+
+            try {
+                const response = await fetch(`/api/chapter/${bookId}/${chapterId}/render`);
+                const data = await response.json();
+                contentDiv.innerHTML = data.html;
+                
+                // Re-initialize syntax highlighting and math rendering
+                if (window.Prism) {
+                    Prism.highlightAll();
+                }
+                initializeMath();
+                initializeMermaid();
+            } catch (error) {
+                contentDiv.innerHTML = '<div class="alert alert-danger">Error loading chapter content.</div>';
+            }
+        }
+
+        function initializeMath() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ]
+                });
+            }
+        }
+
+        function initializeMermaid() {
+            if (window.mermaid) {
+                mermaid.initialize({ startOnLoad: true });
+            }
+        }
+
+        function executeCode(button) {
+            // TODO: Implement code execution
+            console.log('Code execution not yet implemented');
+        }
+    </script>
+}

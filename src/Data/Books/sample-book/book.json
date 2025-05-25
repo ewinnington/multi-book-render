@@ -1,0 +1,51 @@
+{
+  "id": "sample-book",
+  "title": "Getting Started with Multi-Book Renderer",
+  "description": "A comprehensive guide to using the Multi-Book Renderer platform for creating and reading interactive markdown books.",
+  "author": "MBR Team",
+  "coverColor": "#4f46e5",
+  "coverImagePath": null,
+  "isPublic": true,
+  "allowedUsers": [],
+  "chapters": [
+    {
+      "id": "01-introduction",
+      "title": "Introduction",
+      "fileName": "01-introduction.md",
+      "order": 1,
+      "content": "",
+      "isPublished": true,
+      "createdAt": "2025-05-25T10:00:00Z",
+      "updatedAt": "2025-05-25T10:00:00Z"
+    },
+    {
+      "id": "02-markdown-basics",
+      "title": "Markdown Basics",
+      "fileName": "02-markdown-basics.md",
+      "order": 2,
+      "content": "",
+      "isPublished": true,
+      "createdAt": "2025-05-25T10:00:00Z",
+      "updatedAt": "2025-05-25T10:00:00Z"
+    },
+    {
+      "id": "03-advanced-features",
+      "title": "Advanced Features",
+      "fileName": "03-advanced-features.md",
+      "order": 3,
+      "content": "",
+      "isPublished": true,
+      "createdAt": "2025-05-25T10:00:00Z",
+      "updatedAt": "2025-05-25T10:00:00Z"
+    }
+  ],
+  "gitRepositoryPath": "",
+  "createdAt": "2025-05-25T10:00:00Z",
+  "updatedAt": "2025-05-25T10:00:00Z",
+  "settings": {
+    "allowCodeExecution": true,
+    "allowedCodeLanguages": ["javascript", "python", "csharp"],
+    "codeExecutionTimeoutSeconds": 30,
+    "showLineNumbers": true
+  }
+}

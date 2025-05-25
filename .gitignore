@@ -1,3 +1,9 @@
 /src/bin
 /src/obj
 /src/Properties
+/src/BookRenderer.Core/obj
+/src/BookRenderer.Core/bin
+/src/BookRenderer.Services/obj
+/src/BookRenderer.Services/bin
+/src/BookRenderer.Web/obj
+/src/BookRenderer.Web/bin
