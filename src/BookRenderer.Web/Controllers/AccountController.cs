@@ -8,11 +8,11 @@ using System.Security.Claims;
 
 namespace BookRenderer.Web.Controllers;
 
-public class AccountController : Controller
+public class AccountController : BaseController
 {
     private readonly IUserService _userService;
 
-    public AccountController(IUserService userService)
+    public AccountController(IUserService userService) : base(userService)
     {
         _userService = userService;
     }
@@ -164,9 +164,44 @@ public class AccountController : Controller
         {
             ViewBag.Error = "Current password is incorrect.";
             return View();
-        }
-
-        ViewBag.Success = "Password changed successfully.";
+        }        ViewBag.Success = "Password changed successfully.";
         return View();
     }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> UpdateTheme([FromBody] ThemeUpdateRequest request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Json(new { success = false, message = "User not authenticated" });
+
+        if (string.IsNullOrWhiteSpace(request.Theme) || 
+            (request.Theme != "light" && request.Theme != "dark"))
+        {
+            return Json(new { success = false, message = "Invalid theme value" });
+        }
+
+        try
+        {
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user != null)
+            {
+                user.Preferences.Theme = request.Theme;
+                await _userService.UpdateUserAsync(user);
+                return Json(new { success = true });
+            }
+            
+            return Json(new { success = false, message = "User not found" });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
+}
+
+public class ThemeUpdateRequest
+{
+    public string Theme { get; set; } = string.Empty;
 }

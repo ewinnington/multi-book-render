@@ -8,13 +8,13 @@ using System.Security.Claims;
 namespace BookRenderer.Web.Controllers;
 
 [Authorize(Roles = "Admin")]
-public class AdminController : Controller
+public class AdminController : BaseController
 {
     private readonly IBookService _bookService;
     private readonly IUserService _userService;
     private readonly IChapterService _chapterService;
 
-    public AdminController(IBookService bookService, IUserService userService, IChapterService chapterService)
+    public AdminController(IBookService bookService, IUserService userService, IChapterService chapterService) : base(userService)
     {
         _bookService = bookService;
         _userService = userService;
@@ -131,9 +131,7 @@ public class AdminController : Controller
         };
 
         return View(viewModel);
-    }
-
-    [HttpGet]
+    }    [HttpGet]
     public async Task<IActionResult> CreateChapter(string bookId)
     {
         var book = await _bookService.GetBookByIdAsync(bookId);
@@ -145,9 +143,13 @@ public class AdminController : Controller
 
         var chapter = new Chapter
         {
+            Id = "", // Will be generated during creation
             BookId = bookId,
             Order = nextOrder,
-            Content = "# New Chapter\n\nStart writing your content here..."
+            Title = "",
+            Content = "# New Chapter\n\nStart writing your content here...",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
         ViewBag.Book = book;
@@ -157,8 +159,21 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> CreateChapter(Chapter chapter)
     {
+        // Add debugging information
+        Console.WriteLine($"[DEBUG] CreateChapter POST - BookId: {chapter.BookId}");
+        Console.WriteLine($"[DEBUG] CreateChapter POST - Title: {chapter.Title}");
+        Console.WriteLine($"[DEBUG] CreateChapter POST - Order: {chapter.Order}");
+        Console.WriteLine($"[DEBUG] CreateChapter POST - Content length: {chapter.Content?.Length ?? 0}");
+        Console.WriteLine($"[DEBUG] CreateChapter POST - ModelState valid: {ModelState.IsValid}");
+        
         if (!ModelState.IsValid)
         {
+            Console.WriteLine("[DEBUG] CreateChapter POST - ModelState errors:");
+            foreach (var error in ModelState)
+            {
+                Console.WriteLine($"[DEBUG] Field {error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
+            }
+            
             var book = await _bookService.GetBookByIdAsync(chapter.BookId);
             ViewBag.Book = book;
             return View(chapter);
@@ -166,12 +181,16 @@ public class AdminController : Controller
 
         try
         {
+            Console.WriteLine("[DEBUG] CreateChapter POST - Calling ChapterService.CreateChapterAsync");
             await _chapterService.CreateChapterAsync(chapter);
             TempData["Success"] = $"Chapter '{chapter.Title}' created successfully.";
+            Console.WriteLine("[DEBUG] CreateChapter POST - Chapter created successfully");
             return RedirectToAction("ManageChapters", new { bookId = chapter.BookId });
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"[DEBUG] CreateChapter POST - Exception: {ex.Message}");
+            Console.WriteLine($"[DEBUG] CreateChapter POST - StackTrace: {ex.StackTrace}");
             ViewBag.Error = $"Error creating chapter: {ex.Message}";
             var book = await _bookService.GetBookByIdAsync(chapter.BookId);
             ViewBag.Book = book;

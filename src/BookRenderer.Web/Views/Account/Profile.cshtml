@@ -51,15 +51,14 @@
             <div class="mb-3">
                 <label class="form-label">Last Login</label>
                 <input value="@(Model.LastLoginAt == DateTime.MinValue ? "Never" : Model.LastLoginAt.ToString("MMMM dd, yyyy 'at' h:mm tt"))" class="form-control" readonly />
-            </div>
-
-            <h4>Preferences</h4>
+            </div>            <h4>Preferences</h4>
             <div class="mb-3">
                 <label asp-for="Preferences.Theme" class="form-label">Theme</label>
-                <select asp-for="Preferences.Theme" class="form-select">
+                <select asp-for="Preferences.Theme" id="Theme" class="form-select">
                     <option value="light">Light</option>
                     <option value="dark">Dark</option>
                 </select>
+                <small class="form-text text-muted">Theme changes are applied immediately.</small>
             </div>
 
             <div class="mb-3">

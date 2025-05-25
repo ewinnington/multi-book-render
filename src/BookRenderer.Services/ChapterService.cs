@@ -74,12 +74,17 @@ public class ChapterService : IChapterService
         return chapters.FirstOrDefault(c => c.Order == order);
     }    public async Task<Chapter> CreateChapterAsync(Chapter chapter)
     {
+        Console.WriteLine($"[DEBUG] CreateChapterAsync - Input: BookId={chapter.BookId}, Title={chapter.Title}, Order={chapter.Order}");
+        
         chapter.Id = GenerateChapterId(chapter.Title);
         chapter.FileName = $"{chapter.Order:D2}-{chapter.Id}.md";
         chapter.CreatedAt = DateTime.UtcNow;
         chapter.UpdatedAt = DateTime.UtcNow;
 
+        Console.WriteLine($"[DEBUG] CreateChapterAsync - Generated: Id={chapter.Id}, FileName={chapter.FileName}");
+
         var chapterPath = Path.Combine(_dataPath, chapter.BookId, "chapters", chapter.FileName);
+        Console.WriteLine($"[DEBUG] CreateChapterAsync - Chapter path: {chapterPath}");
         
         // Create initial content if empty
         if (string.IsNullOrEmpty(chapter.Content))
@@ -87,23 +92,49 @@ public class ChapterService : IChapterService
             chapter.Content = $"# {chapter.Title}\n\nThis chapter is under construction.";
         }
 
+        Console.WriteLine($"[DEBUG] CreateChapterAsync - Writing file to: {chapterPath}");
         await _fileSystemService.WriteFileAsync(chapterPath, chapter.Content);
+        Console.WriteLine($"[DEBUG] CreateChapterAsync - File written successfully");
 
         // Commit the new chapter
         var bookPath = Path.Combine(_dataPath, chapter.BookId);
+        Console.WriteLine($"[DEBUG] CreateChapterAsync - Committing to git at: {bookPath}");
         await _gitService.CommitChangesAsync(bookPath, $"Added new chapter: {chapter.Title}");
+        Console.WriteLine($"[DEBUG] CreateChapterAsync - Git commit successful");
 
         return chapter;
     }    public async Task<Chapter> UpdateChapterAsync(Chapter chapter)
     {
+        Console.WriteLine($"[DEBUG] UpdateChapterAsync - Input: BookId={chapter.BookId}, Id={chapter.Id}, Title={chapter.Title}, FileName={chapter.FileName}");
+        
         chapter.UpdatedAt = DateTime.UtcNow;
         
+        // Ensure we have a valid filename
+        if (string.IsNullOrEmpty(chapter.FileName))
+        {
+            Console.WriteLine("[DEBUG] UpdateChapterAsync - FileName is empty, generating from Order and Id");
+            chapter.FileName = $"{chapter.Order:D2}-{chapter.Id}.md";
+        }
+        
         var chapterPath = Path.Combine(_dataPath, chapter.BookId, "chapters", chapter.FileName);
+        Console.WriteLine($"[DEBUG] UpdateChapterAsync - Chapter path: {chapterPath}");
+        
+        // Verify the file exists before trying to update
+        if (!await _fileSystemService.FileExistsAsync(chapterPath))
+        {
+            Console.WriteLine($"[DEBUG] UpdateChapterAsync - File does not exist: {chapterPath}");
+            throw new FileNotFoundException($"Chapter file not found: {chapterPath}");
+        }
+        
+        Console.WriteLine($"[DEBUG] UpdateChapterAsync - Writing file to: {chapterPath}");
         await _fileSystemService.WriteFileAsync(chapterPath, chapter.Content);
+        Console.WriteLine($"[DEBUG] UpdateChapterAsync - File written successfully");
 
         // Commit the changes
         var bookPath = Path.Combine(_dataPath, chapter.BookId);
+        Console.WriteLine($"[DEBUG] UpdateChapterAsync - Committing to git at: {bookPath}");
         await _gitService.CommitChangesAsync(bookPath, $"Updated chapter: {chapter.Title} - {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}");
+        Console.WriteLine($"[DEBUG] UpdateChapterAsync - Git commit successful");
 
         return chapter;
     }

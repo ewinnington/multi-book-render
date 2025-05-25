@@ -3,16 +3,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BookRenderer.Web.Controllers;
 
-public class BookController : Controller
+public class BookController : BaseController
 {
     private readonly IBookService _bookService;
     private readonly IChapterService _chapterService;
 
-    public BookController(IBookService bookService, IChapterService chapterService)
+    public BookController(IBookService bookService, IChapterService chapterService, IUserService userService) : base(userService)
     {
         _bookService = bookService;
         _chapterService = chapterService;
-    }    public async Task<IActionResult> Details(string id)
+    }public async Task<IActionResult> Details(string id)
     {
         if (string.IsNullOrEmpty(id))
             return NotFound();

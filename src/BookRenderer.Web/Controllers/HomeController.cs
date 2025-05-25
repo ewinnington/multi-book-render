@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BookRenderer.Web.Controllers;
 
-public class HomeController : Controller
+public class HomeController : BaseController
 {
     private readonly IBookService _bookService;
 
-    public HomeController(IBookService bookService)
+    public HomeController(IBookService bookService, IUserService userService) : base(userService)
     {
         _bookService = bookService;
     }
