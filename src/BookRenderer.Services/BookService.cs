@@ -156,7 +156,7 @@ public class BookService : IBookService
                 PropertyNameCaseInsensitive = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
-
+            Console.WriteLine(json); // Debugging line to check JSON content
             var book = JsonSerializer.Deserialize<Book>(json, options);
             
             if (book != null)
@@ -197,6 +197,7 @@ public class BookService : IBookService
                 FileName = fileName,
                 Order = order,
                 Title = ExtractTitleFromFileName(fileName)
+                
             };
 
             chapters.Add(chapter);

@@ -97,10 +97,10 @@ src/
 
 ## Testing Log
 **Date:** [To be filled during testing]
-- [ ] Compilation check
-- [ ] Application startup
-- [ ] Home page load
-- [ ] Book discovery
+- [x] Compilation check
+- [x] Application startup
+- [x] Home page load
+- [x] Book discovery
 - [ ] Chapter reading
 - [ ] Navigation functionality
 - [ ] Application startup
@@ -112,12 +112,29 @@ src/
 - [ ] Responsive design
 
 ### Issues Found & Fixed:
-(To be documented as we test)
+
+- ✅ **JSON Deserialization Error**: The book was not rendering due to a json deserialisation error. This has been fixed.
+- ✅ **Chapter Display Issue**: The chapters were not being displayed due to path resolution issues between BookService and ChapterService. 
+  - **Root Cause**: ChapterService was using `AppContext.BaseDirectory` while BookService had more sophisticated path resolution
+  - **Solution**: Added `FindSolutionDirectory` method to ChapterService to match BookService path resolution
+  - **Result**: Chapters now load correctly and display with proper markdown rendering
+
+### Current Status - CHAPTER RENDERING FIXED ✅
+- [x] **Application Startup**: App compiles and starts without errors
+- [x] **Book Discovery**: Books are loaded correctly from Data/Books/ folder  
+- [x] **Home Page**: Book listing displays correctly with covers and metadata
+- [x] **Book Reading**: Chapter navigation and markdown rendering works perfectly
+- [x] **API Endpoints**: Chapter content delivery via ChapterController working
+- [x] **Markdown Rendering**: Basic markdown rendering with syntax highlighting
 
 ## Next Steps After Validation:
+- **Current Focus**: Add Mermaid diagram support 🎯
 - Add user authentication system
 - Create admin interface for book management
 - Implement code execution framework
-- Add Mermaid diagram support
+- Add KaTeX math rendering validation
 
 ---
+
+## Step: Implement Mermaid Diagram Support
+

@@ -7,43 +7,65 @@ public class ChapterService : IChapterService
 {
     private readonly IFileSystemService _fileSystemService;
     private readonly IGitService _gitService;
-    private readonly string _dataPath;
-
-    public ChapterService(IFileSystemService fileSystemService, IGitService gitService)
+    private readonly string _dataPath;    public ChapterService(IFileSystemService fileSystemService, IGitService gitService)
     {
         _fileSystemService = fileSystemService;
         _gitService = gitService;
-        _dataPath = Path.Combine(AppContext.BaseDirectory, "Data", "Books");
-    }
-
-    public async Task<IEnumerable<Chapter>> GetChaptersAsync(string bookId)
+        
+        // Use the same path resolution logic as BookService
+        var currentDir = AppContext.BaseDirectory;
+        var solutionDir = FindSolutionDirectory(currentDir);
+        _dataPath = Path.Combine(solutionDir ?? currentDir, "Data", "Books");
+        
+        Console.WriteLine($"[DEBUG] ChapterService constructor - Data path: {_dataPath}");
+        Console.WriteLine($"[DEBUG] ChapterService constructor - AppContext.BaseDirectory: {AppContext.BaseDirectory}");
+    }public async Task<IEnumerable<Chapter>> GetChaptersAsync(string bookId)
     {
         var chaptersPath = Path.Combine(_dataPath, bookId, "chapters");
+        Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Looking for chapters in: {chaptersPath}");
         
         if (!await _fileSystemService.DirectoryExistsAsync(chaptersPath))
+        {
+            Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Directory does not exist: {chaptersPath}");
             return Enumerable.Empty<Chapter>();
+        }
 
         var chapterFiles = await _fileSystemService.GetFilesAsync(chaptersPath, "*.md");
+        Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Found {chapterFiles.Count()} .md files");
+        
         var chapters = new List<Chapter>();
 
         foreach (var chapterFile in chapterFiles)
         {
+            Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Processing file: {chapterFile}");
             var chapter = await LoadChapterFromFileAsync(chapterFile, bookId);
             if (chapter != null)
+            {
+                Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Loaded chapter: {chapter.Id}, Order: {chapter.Order}");
                 chapters.Add(chapter);
+            }
+            else
+            {
+                Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Failed to load chapter from: {chapterFile}");
+            }
         }
 
+        Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Returning {chapters.Count} chapters");
         return chapters.OrderBy(c => c.Order);
-    }
-
-    public async Task<Chapter?> GetChapterAsync(string bookId, string chapterId)
+    }public async Task<Chapter?> GetChapterAsync(string bookId, string chapterId)
     {
         var chapterPath = Path.Combine(_dataPath, bookId, "chapters", $"{chapterId}.md");
+        Console.WriteLine($"[DEBUG] ChapterService.GetChapterAsync - Looking for chapter at: {chapterPath}");
         
         if (!await _fileSystemService.FileExistsAsync(chapterPath))
+        {
+            Console.WriteLine($"[DEBUG] Chapter file not found: {chapterPath}");
             return null;
+        }
 
-        return await LoadChapterFromFileAsync(chapterPath, bookId);
+        var result = await LoadChapterFromFileAsync(chapterPath, bookId);
+        Console.WriteLine($"[DEBUG] Loaded chapter: {result?.Id} with content length: {result?.Content?.Length ?? 0}");
+        return result;
     }
 
     public async Task<Chapter?> GetChapterByOrderAsync(string bookId, int order)
@@ -225,7 +247,25 @@ public class ChapterService : IChapterService
             {
                 return trimmed.Substring(2).Trim();
             }
+        }        return null;
+    }
+    
+    private string? FindSolutionDirectory(string startingPath)
+    {
+        var directory = new DirectoryInfo(startingPath);
+        
+        while (directory != null)
+        {
+            // Look for .sln file or src folder
+            if (directory.GetFiles("*.sln").Any() || 
+                directory.GetDirectories("src").Any())
+            {
+                return directory.FullName;
+            }
+            
+            directory = directory.Parent;
         }
+        
         return null;
     }
 }

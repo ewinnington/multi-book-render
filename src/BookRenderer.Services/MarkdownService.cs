@@ -139,16 +139,22 @@ public class MarkdownService : IMarkdownService
             var absolutePath = $"/api/books/{bookId}/assets/{imagePath}";
             return $"![{altText}]({absolutePath})";
         });
-    }
-
-    private string ProcessCodeBlocks(string html)
+    }    private string ProcessCodeBlocks(string html)
     {
-        // Add executable code block markers
+        // Add executable code block markers and handle Mermaid diagrams
         var pattern = @"<pre><code class=""language-(\w+)"">(.*?)</code></pre>";
         return Regex.Replace(html, pattern, match =>
         {
             var language = match.Groups[1].Value;
             var code = match.Groups[2].Value;
+            
+            // Handle Mermaid diagrams
+            if (language.ToLowerInvariant() == "mermaid")
+            {
+                return $@"<div class=""mermaid-diagram"">
+                    <div class=""mermaid"">{System.Net.WebUtility.HtmlDecode(code)}</div>
+                </div>";
+            }
             
             if (IsExecutableLanguage(language))
             {

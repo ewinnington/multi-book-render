@@ -22,46 +22,36 @@ public class BookController : Controller
             return NotFound();
 
         return View(book);
-    }
-
-    public async Task<IActionResult> Read(string id, int? chapter = null)
+    }    public async Task<IActionResult> Read(string id, int? chapter = null)
     {
-        // Add logging to debug the issue
-        Console.WriteLine($"[DEBUG] BookController.Read called with id='{id}', chapter={chapter}");
-        
         if (string.IsNullOrEmpty(id))
-        {
-            Console.WriteLine("[DEBUG] id parameter is null or empty, returning NotFound");
             return NotFound();
-        }
 
         var book = await _bookService.GetBookByIdAsync(id);
         if (book == null)
-        {
-            Console.WriteLine($"[DEBUG] Book with id '{id}' not found");
             return NotFound();
-        }
 
-        // Get the specific chapter or default to first chapter
-        var chapterOrder = chapter ?? 1;
-        var currentChapter = await _chapterService.GetChapterByOrderAsync(id, chapterOrder);
+        Console.WriteLine($"[DEBUG] BookController.Read: Book '{id}' found with {book.Chapters?.Count ?? 0} chapters");
+
+        // Get all chapters for the book
+        var allChapters = (await _chapterService.GetChaptersAsync(id)).OrderBy(c => c.Order).ToList();
         
-        if (currentChapter == null && book.Chapters.Any())
+        Console.WriteLine($"[DEBUG] BookController.Read: ChapterService returned {allChapters.Count} chapters");
+        
+        if (!allChapters.Any())
         {
-            // Fall back to first available chapter
-            currentChapter = book.Chapters.OrderBy(c => c.Order).First();
-        }
-
-        if (currentChapter == null)
-        {
-            // No chapters available
+            Console.WriteLine($"[DEBUG] BookController.Read: No chapters found, showing NoChapters view");
             ViewBag.Message = "This book doesn't have any chapters yet.";
             return View("NoChapters", book);
         }
 
+        // Get the specific chapter or default to first chapter
+        var chapterOrder = chapter ?? 1;
+        var currentChapter = allChapters.FirstOrDefault(c => c.Order == chapterOrder) ?? allChapters.First();
+
         ViewBag.Book = book;
         ViewBag.CurrentChapter = currentChapter;
-        ViewBag.AllChapters = book.Chapters.OrderBy(c => c.Order).ToList();
+        ViewBag.AllChapters = allChapters;
 
         return View("Read", currentChapter);
     }
