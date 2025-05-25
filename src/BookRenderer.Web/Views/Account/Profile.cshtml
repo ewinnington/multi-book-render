@@ -1,0 +1,90 @@
+@model BookRenderer.Core.Models.User
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <h2>User Profile</h2>
+
+        @if (!string.IsNullOrEmpty(ViewBag.Success))
+        {
+            <div class="alert alert-success" role="alert">
+                @ViewBag.Success
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(ViewBag.Error))
+        {
+            <div class="alert alert-danger" role="alert">
+                @ViewBag.Error
+            </div>
+        }
+
+        <form method="post" asp-action="UpdateProfile">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedAt" />
+            <input type="hidden" asp-for="LastLoginAt" />
+            <input type="hidden" asp-for="PasswordHash" />
+
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label">Username</label>
+                <input asp-for="Username" class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" type="email" class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Role</label>
+                <input value="@Model.Role" class="form-control" readonly />
+                <small class="form-text text-muted">Role cannot be changed by users.</small>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Member Since</label>
+                <input value="@Model.CreatedAt.ToString("MMMM dd, yyyy")" class="form-control" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Last Login</label>
+                <input value="@(Model.LastLoginAt == DateTime.MinValue ? "Never" : Model.LastLoginAt.ToString("MMMM dd, yyyy 'at' h:mm tt"))" class="form-control" readonly />
+            </div>
+
+            <h4>Preferences</h4>
+            <div class="mb-3">
+                <label asp-for="Preferences.Theme" class="form-label">Theme</label>
+                <select asp-for="Preferences.Theme" class="form-select">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Preferences.FontSize" class="form-label">Font Size</label>
+                <input asp-for="Preferences.FontSize" type="number" min="12" max="24" class="form-control" />
+            </div>
+
+            <div class="mb-3 form-check">
+                <input asp-for="Preferences.ShowTableOfContents" class="form-check-input" type="checkbox" />
+                <label asp-for="Preferences.ShowTableOfContents" class="form-check-label">
+                    Show Table of Contents
+                </label>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input asp-for="Preferences.EnableCodeExecution" class="form-check-input" type="checkbox" />
+                <label asp-for="Preferences.EnableCodeExecution" class="form-check-label">
+                    Enable Code Execution
+                </label>
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+                <a asp-action="ChangePassword" class="btn btn-outline-secondary">Change Password</a>
+            </div>
+        </form>
+    </div>
+</div>

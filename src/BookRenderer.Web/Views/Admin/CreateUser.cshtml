@@ -1,0 +1,138 @@
+@using BookRenderer.Core.Models
+@model BookRenderer.Core.Models.User
+@{
+    ViewData["Title"] = "Create User";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2>👤 Create New User</h2>
+            </div>
+            <div>
+                <a asp-action="ManageUsers" class="btn btn-outline-secondary">Back to Users</a>
+            </div>
+        </div>
+        
+        @if (!string.IsNullOrEmpty(ViewBag.Error))
+        {
+            <div class="alert alert-danger" role="alert">
+                @ViewBag.Error
+            </div>
+        }
+
+        <form method="post">
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label">Username *</label>
+                <input asp-for="Username" class="form-control" required placeholder="Enter username">
+                <small class="form-text text-muted">Must be unique</small>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">Email *</label>
+                <input asp-for="Email" type="email" class="form-control" required placeholder="user@example.com">
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password *</label>
+                <input type="password" id="password" name="password" class="form-control" required autocomplete="new-password">
+                <small class="form-text text-muted">Minimum 6 characters</small>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Role" class="form-label">Role *</label>
+                <select asp-for="Role" class="form-select" required>
+                    <option value="">Select a role</option>
+                    <option value="@UserRole.Reader">Reader</option>
+                    <option value="@UserRole.Admin">Admin</option>
+                </select>
+                <small class="form-text text-muted">
+                    <strong>Reader:</strong> Can view and read assigned books<br>
+                    <strong>Admin:</strong> Full access to manage books and users
+                </small>
+            </div>
+
+            <div class="mb-3">
+                <h5>User Preferences</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="preferences-theme" class="form-label">Theme</label>
+                            <select id="preferences-theme" name="Preferences.Theme" class="form-select">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="preferences-fontsize" class="form-label">Font Size</label>
+                            <input type="number" id="preferences-fontsize" name="Preferences.FontSize" min="12" max="24" value="16" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" id="preferences-showtoc" name="Preferences.ShowTableOfContents" class="form-check-input" checked>
+                            <label for="preferences-showtoc" class="form-check-label">
+                                Show Table of Contents
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" id="preferences-codeexec" name="Preferences.EnableCodeExecution" class="form-check-input">
+                            <label for="preferences-codeexec" class="form-check-label">
+                                Enable Code Execution
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Create User</button>
+                <a asp-action="ManageUsers" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">💡 Tips</h5>
+            </div>
+            <div class="card-body">
+                <h6>Role Permissions:</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Reader:</strong></li>
+                    <li>• View assigned books</li>
+                    <li>• Read chapters</li>
+                    <li>• Execute code (if enabled)</li>
+                    <li>• Change own preferences</li>
+                </ul>
+                
+                <ul class="list-unstyled mt-3">
+                    <li><strong>Admin:</strong></li>
+                    <li>• All Reader permissions</li>
+                    <li>• Create/edit books</li>
+                    <li>• Manage chapters</li>
+                    <li>• Manage users</li>
+                    <li>• Access admin dashboard</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Security Notes:</h6>
+                <ul class="list-unstyled">
+                    <li>• Passwords are securely hashed</li>
+                    <li>• Users can change their own passwords</li>
+                    <li>• Admins cannot see user passwords</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,121 @@
+@using BookRenderer.Web.Models
+@model BookRenderer.Core.Models.Chapter
+@{
+    ViewData["Title"] = $"Edit Chapter - {Model.Title}";
+    var book = ViewBag.Book as BookRenderer.Core.Models.Book;
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2>✏️ Edit Chapter</h2>
+                <h4 class="text-muted">@book?.Title</h4>
+            </div>
+            <div>
+                <a asp-action="ManageChapters" asp-route-bookId="@Model.BookId" class="btn btn-outline-secondary">Back to Chapters</a>
+                <a asp-controller="Book" asp-action="Read" asp-route-id="@Model.BookId" asp-route-chapter="@Model.Order" 
+                   class="btn btn-outline-primary" target="_blank">Preview</a>
+            </div>
+        </div>
+        
+        @if (!string.IsNullOrEmpty(ViewBag.Error))
+        {
+            <div class="alert alert-danger" role="alert">
+                @ViewBag.Error
+            </div>
+        }
+
+        <form method="post">
+            <input type="hidden" asp-for="BookId" />
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedAt" />
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label asp-for="Order" class="form-label">Chapter Order *</label>
+                        <input asp-for="Order" type="number" min="1" class="form-control" required>
+                        <small class="form-text text-muted">The order of this chapter in the book</small>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label">Chapter Title *</label>
+                        <input asp-for="Title" class="form-control" required placeholder="Enter chapter title">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Content" class="form-label">Content *</label>
+                <textarea asp-for="Content" class="form-control" rows="20" required placeholder="Write your chapter content in Markdown format..."></textarea>
+                <small class="form-text text-muted">
+                    You can use Markdown formatting. 
+                    <a href="https://www.markdownguide.org/basic-syntax/" target="_blank">Learn Markdown syntax</a>
+                </small>
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Update Chapter</button>
+                <a asp-action="ManageChapters" asp-route-bookId="@Model.BookId" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">💡 Markdown Tips</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Headers</h6>
+                        <code># Heading 1</code><br>
+                        <code>## Heading 2</code><br>
+                        <code>### Heading 3</code><br><br>
+                        
+                        <h6>Text Formatting</h6>
+                        <code>**bold text**</code><br>
+                        <code>*italic text*</code><br>
+                        <code>`inline code`</code><br>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Lists</h6>
+                        <code>- Item 1</code><br>
+                        <code>- Item 2</code><br><br>
+                        
+                        <h6>Code Blocks</h6>
+                        <code>```python</code><br>
+                        <code>print("Hello World")</code><br>
+                        <code>```</code><br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📊 Chapter Info</h5>
+            </div>
+            <div class="card-body">
+                <strong>Chapter:</strong> @Model.Order<br>
+                <strong>Title:</strong> @Model.Title<br>
+                <strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy")<br>
+                <strong>Last Updated:</strong> @Model.UpdatedAt.ToString("MMM dd, yyyy")<br>
+                <strong>Content Length:</strong> @(Model.Content?.Length ?? 0) characters
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control[rows="20"] {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+}
+</style>

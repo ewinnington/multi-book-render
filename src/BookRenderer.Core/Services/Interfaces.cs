@@ -18,8 +18,8 @@ public interface IChapterService
     Task<IEnumerable<Chapter>> GetChaptersAsync(string bookId);
     Task<Chapter?> GetChapterAsync(string bookId, string chapterId);
     Task<Chapter?> GetChapterByOrderAsync(string bookId, int order);
-    Task<Chapter> CreateChapterAsync(string bookId, Chapter chapter);
-    Task<Chapter> UpdateChapterAsync(string bookId, Chapter chapter);
+    Task<Chapter> CreateChapterAsync(Chapter chapter);
+    Task<Chapter> UpdateChapterAsync(Chapter chapter);
     Task<bool> DeleteChapterAsync(string bookId, string chapterId);
     Task<bool> ReorderChaptersAsync(string bookId, List<string> chapterIds);
 }
@@ -33,6 +33,7 @@ public interface IUserService
     Task<User> UpdateUserAsync(User user);
     Task<bool> DeleteUserAsync(string userId);
     Task<bool> ChangePasswordAsync(string userId, string oldPassword, string newPassword);
+    Task<IEnumerable<User>> GetAllUsersAsync();
 }
 
 public interface IGitService

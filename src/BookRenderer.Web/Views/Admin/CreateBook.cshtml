@@ -1,0 +1,81 @@
+@model BookRenderer.Core.Models.Book
+@{
+    ViewData["Title"] = "Create Book";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <h2>📚 Create New Book</h2>
+
+        @if (!string.IsNullOrEmpty(ViewBag.Error))
+        {
+            <div class="alert alert-danger" role="alert">
+                @ViewBag.Error
+            </div>
+        }
+
+        <form method="post">
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label">Title *</label>
+                <input asp-for="Title" class="form-control" required placeholder="Enter book title">
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">Description</label>
+                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Brief description of the book"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Author" class="form-label">Author</label>
+                <input asp-for="Author" class="form-control" placeholder="Author name">
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="CoverColor" class="form-label">Cover Color</label>
+                        <input asp-for="CoverColor" type="color" class="form-control form-control-color" value="#007bff">
+                        <small class="form-text text-muted">Choose a color for the book cover</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3 form-check">
+                        <input asp-for="IsPublic" class="form-check-input" type="checkbox" checked>
+                        <label asp-for="IsPublic" class="form-check-label">
+                            Public Book
+                        </label>
+                        <small class="form-text text-muted">If unchecked, only assigned users can access this book</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Book Preview</label>
+                <div class="book-preview-card" style="background-color: #007bff; color: white; padding: 20px; border-radius: 8px; max-width: 200px;">
+                    <h6 class="mb-1" id="preview-title">Sample Book Title</h6>
+                    <small id="preview-author">Author Name</small>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Create Book</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Live preview update
+    document.getElementById('Title').addEventListener('input', function() {
+        document.getElementById('preview-title').textContent = this.value || 'Sample Book Title';
+    });
+    
+    document.getElementById('Author').addEventListener('input', function() {
+        document.getElementById('preview-author').textContent = this.value || 'Author Name';
+    });
+    
+    document.getElementById('CoverColor').addEventListener('input', function() {
+        document.querySelector('.book-preview-card').style.backgroundColor = this.value;
+    });
+</script>

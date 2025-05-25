@@ -1,17 +1,29 @@
 using BookRenderer.Core.Services;
 using BookRenderer.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// Add authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(120); // 2 hours
+        options.SlidingExpiration = true;
+    });
+
 // Register services
 builder.Services.AddScoped<IFileSystemService, FileSystemService>();
 builder.Services.AddScoped<IGitService, GitService>();
 builder.Services.AddScoped<IMarkdownService, MarkdownService>();
 
-// Configure data path for BookService
+// Configure data path for services
 var dataPath = Path.Combine(builder.Environment.ContentRootPath, "..", "Data");
 builder.Services.AddScoped<IBookService>(provider => 
     new BookService(
@@ -20,6 +32,7 @@ builder.Services.AddScoped<IBookService>(provider =>
         dataPath));
 
 builder.Services.AddScoped<IChapterService, ChapterService>();
+builder.Services.AddScoped<IUserService>(provider => new UserService(dataPath));
 
 var app = builder.Build();
 
@@ -35,6 +48,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

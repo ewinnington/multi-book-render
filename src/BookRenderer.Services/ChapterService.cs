@@ -72,16 +72,14 @@ public class ChapterService : IChapterService
     {
         var chapters = await GetChaptersAsync(bookId);
         return chapters.FirstOrDefault(c => c.Order == order);
-    }
-
-    public async Task<Chapter> CreateChapterAsync(string bookId, Chapter chapter)
+    }    public async Task<Chapter> CreateChapterAsync(Chapter chapter)
     {
         chapter.Id = GenerateChapterId(chapter.Title);
         chapter.FileName = $"{chapter.Order:D2}-{chapter.Id}.md";
         chapter.CreatedAt = DateTime.UtcNow;
         chapter.UpdatedAt = DateTime.UtcNow;
 
-        var chapterPath = Path.Combine(_dataPath, bookId, "chapters", chapter.FileName);
+        var chapterPath = Path.Combine(_dataPath, chapter.BookId, "chapters", chapter.FileName);
         
         // Create initial content if empty
         if (string.IsNullOrEmpty(chapter.Content))
@@ -92,21 +90,19 @@ public class ChapterService : IChapterService
         await _fileSystemService.WriteFileAsync(chapterPath, chapter.Content);
 
         // Commit the new chapter
-        var bookPath = Path.Combine(_dataPath, bookId);
+        var bookPath = Path.Combine(_dataPath, chapter.BookId);
         await _gitService.CommitChangesAsync(bookPath, $"Added new chapter: {chapter.Title}");
 
         return chapter;
-    }
-
-    public async Task<Chapter> UpdateChapterAsync(string bookId, Chapter chapter)
+    }    public async Task<Chapter> UpdateChapterAsync(Chapter chapter)
     {
         chapter.UpdatedAt = DateTime.UtcNow;
         
-        var chapterPath = Path.Combine(_dataPath, bookId, "chapters", chapter.FileName);
+        var chapterPath = Path.Combine(_dataPath, chapter.BookId, "chapters", chapter.FileName);
         await _fileSystemService.WriteFileAsync(chapterPath, chapter.Content);
 
         // Commit the changes
-        var bookPath = Path.Combine(_dataPath, bookId);
+        var bookPath = Path.Combine(_dataPath, chapter.BookId);
         await _gitService.CommitChangesAsync(bookPath, $"Updated chapter: {chapter.Title} - {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}");
 
         return chapter;

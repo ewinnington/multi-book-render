@@ -20,6 +20,7 @@ public class Book
 public class Chapter
 {
     public string Id { get; set; } = string.Empty;
+    public string BookId { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string FileName { get; set; } = string.Empty;
     public int Order { get; set; }

@@ -36,3 +36,6 @@ For the .md files, it goes to a folder on disk. Each book is a separate folder, 
 For the images, it goes to a folder on disk. Each book is a separate folder, with each image in a subfolder called "assets".
 For any settings, use .json files for storage in the book for per book settings and in a siteconfig.json for site wide settings, user.json for the users. This makes moving and backing up the site more efficient. 
 
+# How to build
+
+cd c:\Repos\multi-book-render\src && dotnet build BookRenderer.sln

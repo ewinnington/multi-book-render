@@ -1,0 +1,34 @@
+[
+  {
+    "id": "60dd0699-f80b-4096-9350-82bbc9ff7d62",
+    "username": "admin",
+    "passwordHash": "$2a$11$YS.0jE9U0wHWxl1HKwdxO.zml1ubhxUEH.Nn1tOsiPMETtsg1mUFa",
+    "email": "admin@example.com",
+    "role": 1,
+    "assignedBooks": [],
+    "preferences": {
+      "theme": "light",
+      "fontSize": 16,
+      "showTableOfContents": true,
+      "enableCodeExecution": false
+    },
+    "createdAt": "2025-05-25T13:08:50.9728822Z",
+    "lastLoginAt": "2025-05-25T13:11:56"
+  },
+  {
+    "id": "9cba6f79-f705-48f4-ae1f-01edabad6495",
+    "username": "aaaa",
+    "passwordHash": "$2a$11$Obp/SGhr4b2GvrfELoPu9u86NzFN/5Q.P/5YOe1UNADu9Ez/cMKEi",
+    "email": "aa@book.com",
+    "role": 0,
+    "assignedBooks": [],
+    "preferences": {
+      "theme": "light",
+      "fontSize": 16,
+      "showTableOfContents": true,
+      "enableCodeExecution": false
+    },
+    "createdAt": "2025-05-25T13:18:47.8573447Z",
+    "lastLoginAt": "0001-01-01T00:00:00"
+  }
+]
