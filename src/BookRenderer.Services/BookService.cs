@@ -171,39 +171,72 @@ public class BookService : IBookService
         {
             return null;
         }
-    }
-
-    private async Task LoadChaptersAsync(Book book, string bookPath)
+    }    private async Task LoadChaptersAsync(Book book, string bookPath)
     {
         var chaptersPath = Path.Combine(bookPath, "chapters");
         
         if (!await _fileSystemService.DirectoryExistsAsync(chaptersPath))
             return;
 
+        // Start with existing chapters from metadata (if any)
+        var chapters = book.Chapters?.ToList() ?? new List<Chapter>();
+        
+        // Get all .md files in the chapters directory
         var chapterFiles = await _fileSystemService.GetFilesAsync(chaptersPath, "*.md");
-        var chapters = new List<Chapter>();
-
+        
         foreach (var chapterFile in chapterFiles)
         {
             var fileName = Path.GetFileName(chapterFile);
             var chapterId = Path.GetFileNameWithoutExtension(fileName);
             
-            // Extract order from filename if it follows pattern like "01-chapter-name.md"
-            var order = ExtractOrderFromFileName(fileName);
+            // Check if this chapter already exists in metadata
+            var existingChapter = chapters.FirstOrDefault(c => 
+                c.Id == chapterId || 
+                c.FileName == fileName ||
+                (!string.IsNullOrEmpty(c.FileName) && Path.GetFileNameWithoutExtension(c.FileName) == chapterId));
             
-            var chapter = new Chapter
+            if (existingChapter != null)
             {
-                Id = chapterId,
-                FileName = fileName,
-                Order = order,
-                Title = ExtractTitleFromFileName(fileName)
+                // Update existing chapter with filesystem info, but preserve metadata
+                existingChapter.FileName = fileName;
+                // Only update BookId if it's empty
+                if (string.IsNullOrEmpty(existingChapter.BookId))
+                {
+                    existingChapter.BookId = book.Id;
+                }
+                Console.WriteLine($"[LoadChaptersAsync] Preserved metadata chapter: {existingChapter.Id} - '{existingChapter.Title}'");
+            }
+            else
+            {
+                // This is a new chapter file not in metadata - create from filesystem
+                var order = ExtractOrderFromFileName(fileName);
                 
-            };
+                var chapter = new Chapter
+                {
+                    Id = chapterId,
+                    BookId = book.Id,
+                    FileName = fileName,
+                    Order = order,
+                    Title = ExtractTitleFromFileName(fileName)
+                };
 
-            chapters.Add(chapter);
+                chapters.Add(chapter);
+                Console.WriteLine($"[LoadChaptersAsync] Added new filesystem chapter: {chapter.Id} - '{chapter.Title}'");
+            }
         }
 
-        book.Chapters = chapters.OrderBy(c => c.Order).ToList();
+        // Remove any metadata chapters that no longer have corresponding .md files
+        var validChapters = chapters.Where(c => 
+            !string.IsNullOrEmpty(c.FileName) && 
+            chapterFiles.Any(f => Path.GetFileName(f) == c.FileName)).ToList();
+
+        book.Chapters = validChapters.OrderBy(c => c.Order).ToList();
+        
+        Console.WriteLine($"[LoadChaptersAsync] Final chapter count: {book.Chapters.Count}");
+        foreach (var chapter in book.Chapters)
+        {
+            Console.WriteLine($"[LoadChaptersAsync] Final chapter: {chapter.Id} - '{chapter.Title}' (Order: {chapter.Order})");
+        }
     }
 
     private async Task SaveBookMetadataAsync(Book book)

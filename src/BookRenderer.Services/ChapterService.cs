@@ -1,16 +1,26 @@
 using BookRenderer.Core.Models;
 using BookRenderer.Core.Services;
+using System.Text.Json;
 
 namespace BookRenderer.Services;
+
+public enum ChapterOperation
+{
+    Add,
+    Update,
+    Delete
+}
 
 public class ChapterService : IChapterService
 {
     private readonly IFileSystemService _fileSystemService;
     private readonly IGitService _gitService;
-    private readonly string _dataPath;    public ChapterService(IFileSystemService fileSystemService, IGitService gitService)
+    private readonly IBookService _bookService;
+    private readonly string _dataPath;    public ChapterService(IFileSystemService fileSystemService, IGitService gitService, IBookService bookService)
     {
         _fileSystemService = fileSystemService;
         _gitService = gitService;
+        _bookService = bookService;
         
         // Use the same path resolution logic as BookService
         var currentDir = AppContext.BaseDirectory;
@@ -96,6 +106,9 @@ public class ChapterService : IChapterService
         await _fileSystemService.WriteFileAsync(chapterPath, chapter.Content);
         Console.WriteLine($"[DEBUG] CreateChapterAsync - File written successfully");
 
+        // Update the book.json metadata to include this new chapter
+        await UpdateBookMetadataWithChapterAsync(chapter.BookId, chapter, ChapterOperation.Add);
+
         // Commit the new chapter
         var bookPath = Path.Combine(_dataPath, chapter.BookId);
         Console.WriteLine($"[DEBUG] CreateChapterAsync - Committing to git at: {bookPath}");
@@ -130,6 +143,9 @@ public class ChapterService : IChapterService
         await _fileSystemService.WriteFileAsync(chapterPath, chapter.Content);
         Console.WriteLine($"[DEBUG] UpdateChapterAsync - File written successfully");
 
+        // Update the book.json metadata to reflect changes
+        await UpdateBookMetadataWithChapterAsync(chapter.BookId, chapter, ChapterOperation.Update);
+
         // Commit the changes
         var bookPath = Path.Combine(_dataPath, chapter.BookId);
         Console.WriteLine($"[DEBUG] UpdateChapterAsync - Committing to git at: {bookPath}");
@@ -137,9 +153,7 @@ public class ChapterService : IChapterService
         Console.WriteLine($"[DEBUG] UpdateChapterAsync - Git commit successful");
 
         return chapter;
-    }
-
-    public async Task<bool> DeleteChapterAsync(string bookId, string chapterId)
+    }    public async Task<bool> DeleteChapterAsync(string bookId, string chapterId)
     {
         var chapters = await GetChaptersAsync(bookId);
         var chapter = chapters.FirstOrDefault(c => c.Id == chapterId);
@@ -149,6 +163,9 @@ public class ChapterService : IChapterService
 
         var chapterPath = Path.Combine(_dataPath, bookId, "chapters", chapter.FileName);
         await _fileSystemService.DeleteFileAsync(chapterPath);
+
+        // Update the book.json metadata to remove this chapter
+        await UpdateBookMetadataWithChapterAsync(bookId, chapter, ChapterOperation.Delete);
 
         // Commit the deletion
         var bookPath = Path.Combine(_dataPath, bookId);
@@ -276,15 +293,14 @@ public class ChapterService : IChapterService
             }
         }        return null;
     }
-    
-    private string? FindSolutionDirectory(string startingPath)
+      private string? FindSolutionDirectory(string startingPath)
     {
         var directory = new DirectoryInfo(startingPath);
         
         while (directory != null)
         {
             // Look for .sln file or src folder
-            if (directory.GetFiles("*.sln").Any() || 
+            if (directory.GetFiles("*.sln").Any() ||
                 directory.GetDirectories("src").Any())
             {
                 return directory.FullName;
@@ -294,5 +310,76 @@ public class ChapterService : IChapterService
         }
         
         return null;
+    }
+
+    private async Task UpdateBookMetadataWithChapterAsync(string bookId, Chapter chapter, ChapterOperation operation)
+    {
+        Console.WriteLine($"[DEBUG] UpdateBookMetadataWithChapterAsync - BookId: {bookId}, Chapter: {chapter.Title}, Operation: {operation}");
+        
+        try
+        {
+            // Load the current book
+            var book = await _bookService.GetBookByIdAsync(bookId);
+            if (book == null)
+            {
+                Console.WriteLine($"[DEBUG] UpdateBookMetadataWithChapterAsync - Book not found: {bookId}");
+                return;
+            }
+
+            // Update the chapters list based on the operation
+            var chapters = book.Chapters?.ToList() ?? new List<Chapter>();
+            
+            switch (operation)
+            {
+                case ChapterOperation.Add:
+                    // Add the new chapter (without content to keep JSON size reasonable)
+                    var chapterMetadata = new Chapter
+                    {
+                        Id = chapter.Id,
+                        BookId = chapter.BookId,
+                        Title = chapter.Title,
+                        FileName = chapter.FileName,
+                        Order = chapter.Order,
+                        Content = "", // Don't store content in book.json
+                        IsPublished = chapter.IsPublished,
+                        CreatedAt = chapter.CreatedAt,
+                        UpdatedAt = chapter.UpdatedAt
+                    };
+                    chapters.Add(chapterMetadata);
+                    break;
+                    
+                case ChapterOperation.Update:
+                    // Find and update the existing chapter
+                    var existingChapter = chapters.FirstOrDefault(c => c.Id == chapter.Id);
+                    if (existingChapter != null)
+                    {
+                        existingChapter.Title = chapter.Title;
+                        existingChapter.FileName = chapter.FileName;
+                        existingChapter.Order = chapter.Order;
+                        existingChapter.IsPublished = chapter.IsPublished;
+                        existingChapter.UpdatedAt = chapter.UpdatedAt;
+                    }
+                    break;
+                    
+                case ChapterOperation.Delete:
+                    // Remove the chapter
+                    chapters.RemoveAll(c => c.Id == chapter.Id);
+                    break;
+            }
+
+            // Sort chapters by order and update the book
+            book.Chapters = chapters.OrderBy(c => c.Order).ToList();
+            book.UpdatedAt = DateTime.UtcNow;
+
+            // Save the updated book metadata
+            await _bookService.UpdateBookAsync(book);
+            
+            Console.WriteLine($"[DEBUG] UpdateBookMetadataWithChapterAsync - Successfully updated book metadata");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DEBUG] UpdateBookMetadataWithChapterAsync - Error: {ex.Message}");
+            // Don't throw - we don't want chapter operations to fail because of metadata issues
+        }
     }
 }

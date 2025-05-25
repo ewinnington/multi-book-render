@@ -1,5 +1,37 @@
 # Multi-Book Render Development Progress
 
+## CURRENT ISSUES TO RESOLVE - May 25, 2025 ⚠️
+
+### Priority Issue Resolution Required:
+
+**1. Image Path Compatibility Issue** 🖼️
+- **Problem**: External markdown editors use `assets/image.png` format, but current image processing expects direct names
+- **Current State**: Images work with direct names (`image.png`) but fail with `assets/` prefix  
+- **Required**: Support both formats without duplication when serving from `/api/books/{bookId}/assets/{imagePath}`
+- **Files to Fix**: `MarkdownService.ProcessImagePaths()` method
+
+**2. Asset Management System Missing** 📁
+- **Problem**: No UI/API for managing book assets (upload, view, delete)
+- **Required**: Complete asset management interface for each book
+- **Implementation Needed**: 
+  - Asset upload endpoint and UI
+  - Asset browsing/listing interface  
+  - Asset deletion functionality
+  - Integration with chapter editor
+
+**3. Chapter Title Persistence Bug** ❌
+- **Problem**: Chapter titles from form input still not persisting despite ChapterService updates
+- **Root Cause**: Frontend may be loading from cached data or form binding issue
+- **Status**: ChapterService now updates book.json but issue persists
+- **Investigation Needed**: Form processing pipeline, model binding, frontend data loading
+
+**4. User Access Control Not Implemented** 🔒
+- **Problem**: Private books with specific user access not working
+- **Current State**: Books can be marked private but user assignment missing
+- **Required**: UI and logic for assigning specific users to private books
+
+---
+
 ## Project Status: Starting Implementation
 **Date Started:** May 25, 2025
 
@@ -377,106 +409,59 @@ Phase 1 has been successfully completed with a fully functional authentication a
 
 ---
 
-## NEXT SESSION PLAN: Issue Resolution & Phase 2 Preparation
+## CURRENT SESSION: Issue Resolution - May 25, 2025
 
-### Immediate Fixes Required (Session Priority):
-1. **🔧 Chapter Creation Bug Fix**
-   - **Issue**: Creating chapters in books fails
-   - **Investigation**: Check ChapterService.CreateChapterAsync method
-   - **Potential Causes**: File path resolution, JSON serialization, or model validation
-   - **Expected Fix**: Debug and resolve chapter creation/editing workflow
+### Issues to Address:
 
-2. **🎨 Theme System Implementation**
-   - **Issue**: Dark theme selection doesn't update UI
-   - **Implementation**: Add CSS variables and theme switching JavaScript
-   - **Files to Create**: dark-theme.css, theme-switcher.js
-   - **Integration**: Connect user preferences to UI theme system
+1. **🖼️ Image Asset Path Compatibility**
+   - **Problem**: External markdown editors use `assets/image.png` paths, but our serving logic expects direct names
+   - **Impact**: Images don't display when editing files externally
+   - **Solution Needed**: Update MarkdownService to handle both `image.png` and `assets/image.png` paths without duplication
 
-3. **📖 Chapter Management Polish**
-   - **Verification**: Ensure chapter editing, deletion, and reordering works
-   - **Testing**: Full chapter lifecycle management
-   - **UI Polish**: Improve chapter management interface usability
+2. **📁 Asset Management System**
+   - **Problem**: No UI for uploading, viewing, or deleting book assets
+   - **Impact**: Users can't manage images and files for their books
+   - **Solution Needed**: Create asset management interface with upload/delete functionality
 
-### Phase 2 Preparation Tasks:
-4. **🚀 Code Execution Framework Setup**
-   - **Research**: Investigate secure code execution libraries for .NET
-   - **Architecture**: Design sandbox execution service interface
-   - **Security**: Plan isolation and resource limitation strategies
+3. **📝 Chapter Title Persistence Issue - DIAGNOSED**
+   - **Root Cause Found**: BookService.LoadChaptersAsync scans filesystem AND book.json chapters are added separately, creating duplicates
+   - **Evidence**: Debug logs show two entries for same chapter (e.g., "06-fmv" from filesystem + "fmv" from metadata)
+   - **Impact**: Filesystem scan overrides book.json metadata, losing custom titles
+   - **Solution Path**: Modify BookService to use ONLY book.json metadata for chapters, not filesystem scanning
 
-5. **📝 Enhanced Markdown Processing**
-   - **Code Block Detection**: Enhance markdown pipeline to identify executable blocks
-   - **UI Components**: Design "Run Code" button integration
-   - **Output Handling**: Plan code execution result display system
+4. **👥 User Access Control for Private Books**
+   - **Problem**: `allowedUsers` field exists but no UI to assign users to private books
+   - **Impact**: Private books can't be shared with specific users
+   - **Solution Needed**: Add user assignment interface for private books
 
-### Development Session Goals:
-- ✅ Fix all identified issues from testing session
-- ✅ Complete Chapter management functionality
-- ✅ Implement basic theming system
-- ✅ Prepare foundation for Phase 2 code execution features
-- ✅ Maintain 100% working authentication and admin features
+### Implementation Plan:
 
-### Success Criteria for Next Session:
-- ✅ Chapter creation, editing, and deletion works flawlessly
-- Users can switch between light/dark themes with immediate UI updates  
-- Chapter ordering and management interface is intuitive and functional
-- Code execution framework architecture is designed and ready for implementation
+#### Phase 1: Fix Chapter Title Persistence (HIGH PRIORITY)
+```
+1. Modify BookService.LoadBookFromDirectoryAsync to NOT call LoadChaptersAsync if book.json has chapters
+2. Ensure ChapterService metadata updates are the single source of truth
+3. Test chapter creation/editing to verify titles persist
+```
 
----
+#### Phase 2: Image Asset Path Compatibility
+```
+1. Update MarkdownService.ProcessImagePaths to handle "assets/" prefixed paths
+2. Avoid double-processing when path already starts with "assets/"
+3. Test with external markdown editors
+```
 
-## TESTING SESSION RESULTS - Chapter Management Implementation ✅
-**Date:** May 25, 2025
+#### Phase 3: Asset Management System
+```
+1. Create AssetsController for upload/delete operations
+2. Add asset management UI to book management pages
+3. Implement file upload with validation
+4. Add asset browser/gallery view
+```
 
-### ✅ Successfully Fixed Issues:
-1. **Chapter Creation**: ✅ WORKING
-   - Fixed debugging and model initialization issues
-   - 2 chapters successfully created and tested
-   - Chapter creation form works properly with validation
-
-### ⚠️ Issues Identified and Need Fixing:
-2. **Chapter Update**: ❌ FAILING  
-   - **Error**: "Access to the path 'C:\Repos\multi-book-render\src\Data\Books\book-o2-20250525131527\chapters' is denied."
-   - **Root Cause**: File permission or path resolution issue in UpdateChapterAsync
-
-3. **Book Deletion**: ⚠️ PARTIALLY WORKING
-   - **Error**: "Access to the path '9fcf08c8137660ca668e09404ebd9561a68d80' is denied."
-   - **Behavior**: Book is removed from UI and files deleted, but folder remains on disk
-   - **Issue**: Permission error during folder cleanup, but deletion mostly works
-
-4. **Chapter Deletion**: ✅ WORKING
-   - Chapter deletion works correctly
-
-5. **Book Visibility**: ❌ NOT IMPLEMENTED
-   - **Issue**: Hidden books still appear on logged-out UI
-   - **Missing**: User assignment functionality for private books
-   - **Need**: Implement proper book visibility and user access control
-
-### Next Steps - Issue Resolution:
-- 🔧 Fix file permission issues in chapter update and book deletion
-- 🔒 Implement proper book visibility and user access control
-- 🎨 Add theme system implementation
-- ✅ Complete end-to-end testing of all functionality
-
----
-
-## Technical Debt & Future Considerations:
-
-### Code Quality Improvements:
-- [ ] Add unit tests for UserService and BookService
-- [ ] Implement proper logging throughout the application
-- [ ] Add input validation and sanitization for user inputs
-- [ ] Create comprehensive error handling strategy
-
-### Performance Optimizations:
-- [ ] Implement caching for frequently accessed books and chapters
-- [ ] Add lazy loading for large book collections
-- [ ] Optimize JSON file I/O operations
-- [ ] Consider database migration path for production scalability
-
-### Security Enhancements:
-- [ ] Add CSRF protection to forms
-- [ ] Implement rate limiting for authentication
-- [ ] Add input validation for file uploads
-- [ ] Security audit of code execution sandbox (Phase 2)
-
----
+#### Phase 4: User Access Control
+```
+1. Add user selection UI for private books
+2. Update book editing interface
+3. Implement access control checks
+```
 

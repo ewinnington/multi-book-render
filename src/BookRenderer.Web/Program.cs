@@ -31,7 +31,12 @@ builder.Services.AddScoped<IBookService>(provider =>
         provider.GetRequiredService<IGitService>(),
         dataPath));
 
-builder.Services.AddScoped<IChapterService, ChapterService>();
+builder.Services.AddScoped<IChapterService>(provider =>
+    new ChapterService(
+        provider.GetRequiredService<IFileSystemService>(),
+        provider.GetRequiredService<IGitService>(),
+        provider.GetRequiredService<IBookService>()));
+
 builder.Services.AddScoped<IUserService>(provider => new UserService(dataPath));
 
 var app = builder.Build();

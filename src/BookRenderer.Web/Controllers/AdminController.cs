@@ -146,13 +146,14 @@ public class AdminController : BaseController
             Id = "", // Will be generated during creation
             BookId = bookId,
             Order = nextOrder,
-            Title = "",
-            Content = "# New Chapter\n\nStart writing your content here...",
+            Title = $"Chapter {nextOrder}",
+            Content = $"# Chapter {nextOrder}\n\nStart writing your content here...",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
         ViewBag.Book = book;
+        ViewBag.NextChapterOrder = nextOrder;
         return View(chapter);
     }
 
