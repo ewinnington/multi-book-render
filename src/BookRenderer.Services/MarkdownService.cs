@@ -139,9 +139,18 @@ public class MarkdownService : IMarkdownService
                 }
                 return match.Value;
             }
+            
+            // Handle assets/ prefix from external markdown editors
+            // Remove "assets/" prefix if it exists to avoid duplication in the URL
+            if (imagePath.StartsWith("assets/"))
+            {
+                imagePath = imagePath.Substring(7); // Remove "assets/" prefix
+                Console.WriteLine($"[ProcessImagePaths] Stripped 'assets/' prefix. New path: {imagePath}");
+            }
                 
-            // Convert to absolute path
+            // Convert to absolute path - the serving endpoint already includes /assets/
             var absolutePath = $"/api/books/{bookId}/assets/{imagePath}";
+            Console.WriteLine($"[ProcessImagePaths] Generated URL: {absolutePath}");
             
             // Process sizing attributes if present
             if (!string.IsNullOrEmpty(attributes))

@@ -27,8 +27,7 @@
       "isPublished": true,
       "createdAt": "2025-05-25T10:00:00Z",
       "updatedAt": "2025-05-25T10:00:00Z"
-    },
-    {
+    },    {
       "id": "03-advanced-features",
       "title": "Advanced Features",
       "fileName": "03-advanced-features.md",
@@ -37,6 +36,16 @@
       "isPublished": true,
       "createdAt": "2025-05-25T10:00:00Z",
       "updatedAt": "2025-05-25T10:00:00Z"
+    },
+    {
+      "id": "test-assets",
+      "title": "Asset Path Compatibility Test",
+      "fileName": "test-assets.md",
+      "order": 4,
+      "content": "",
+      "isPublished": true,
+      "createdAt": "2025-05-25T12:00:00Z",
+      "updatedAt": "2025-05-25T12:00:00Z"
     }
   ],
   "gitRepositoryPath": "",
