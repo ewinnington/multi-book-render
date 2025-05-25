@@ -164,6 +164,9 @@ You can include images in your books:
 
 *Note: In a real book, you would place images in the `assets` folder.*
 
+![kitten](kitten-papers.png)
+
+
 ## Performance Features
 
 MBR includes several performance optimizations:
