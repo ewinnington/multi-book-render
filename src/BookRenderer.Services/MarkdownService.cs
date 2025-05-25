@@ -17,15 +17,13 @@ public class MarkdownService : IMarkdownService
             .UseAdvancedExtensions()
             .UseMathematics()
             .Build();
-    }
-
-    public async Task<string> RenderMarkdownAsync(string markdown, string bookId)
+    }    public Task<string> RenderMarkdownAsync(string markdown, string bookId)
     {
         if (string.IsNullOrEmpty(markdown))
-            return string.Empty;
+            return Task.FromResult(string.Empty);
 
         // Process relative image paths
-        markdown = await ProcessImagePathsAsync(markdown, bookId);
+        markdown = ProcessImagePaths(markdown, bookId);
         
         // Render to HTML
         var html = Markdown.ToHtml(markdown, _pipeline);
@@ -33,7 +31,7 @@ public class MarkdownService : IMarkdownService
         // Post-process for code blocks
         html = ProcessCodeBlocks(html);
         
-        return html;
+        return Task.FromResult(html);
     }
 
     public async Task<string> RenderChapterAsync(string bookId, string chapterId)
@@ -120,26 +118,98 @@ public class MarkdownService : IMarkdownService
         }
 
         return Task.FromResult(codeBlocks);
-    }
-
-    private async Task<string> ProcessImagePathsAsync(string markdown, string bookId)
+    }    private string ProcessImagePaths(string markdown, string bookId)
     {
-        // Convert relative image paths to absolute paths
-        var pattern = @"!\[([^\]]*)\]\(([^)]+)\)";
+        // Enhanced pattern to support sizing attributes like ![alt](path){width=50%} or ![alt](path){.small}
+        var pattern = @"!\[([^\]]*)\]\(([^)]+)\)(\{([^}]+)\})?";
         return Regex.Replace(markdown, pattern, match =>
         {
             var altText = match.Groups[1].Value;
             var imagePath = match.Groups[2].Value;
+            var attributes = match.Groups[4].Value; // Optional attributes like width=50% or .small
             
             // If it's already an absolute URL, leave it as is
             if (imagePath.StartsWith("http") || imagePath.StartsWith("/"))
+            {
+                // Still process attributes for external images
+                if (!string.IsNullOrEmpty(attributes))
+                {
+                    var styleAndClass = ProcessImageAttributes(attributes);
+                    return $"<img src=\"{imagePath}\" alt=\"{altText}\"{styleAndClass} />";
+                }
                 return match.Value;
+            }
                 
             // Convert to absolute path
             var absolutePath = $"/api/books/{bookId}/assets/{imagePath}";
+            
+            // Process sizing attributes if present
+            if (!string.IsNullOrEmpty(attributes))
+            {
+                var styleAndClass = ProcessImageAttributes(attributes);
+                return $"<img src=\"{absolutePath}\" alt=\"{altText}\"{styleAndClass} />";
+            }
+            
             return $"![{altText}]({absolutePath})";
         });
-    }    private string ProcessCodeBlocks(string html)
+    }
+
+    private string ProcessImageAttributes(string attributes)
+    {
+        var style = new List<string>();
+        var classes = new List<string>();
+        
+        // Split by comma or space to handle multiple attributes
+        var parts = attributes.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        
+        foreach (var part in parts)
+        {
+            var trimmed = part.Trim();
+            
+            // Handle CSS classes (starting with .)
+            if (trimmed.StartsWith("."))
+            {
+                classes.Add(trimmed.Substring(1));
+            }
+            // Handle width attribute
+            else if (trimmed.StartsWith("width="))
+            {
+                var value = trimmed.Substring(6);
+                style.Add($"width: {value}");
+            }
+            // Handle height attribute
+            else if (trimmed.StartsWith("height="))
+            {
+                var value = trimmed.Substring(7);
+                style.Add($"height: {value}");
+            }
+            // Handle size attribute (applies to both width and height)
+            else if (trimmed.StartsWith("size="))
+            {
+                var value = trimmed.Substring(5);
+                style.Add($"width: {value}");
+                style.Add($"height: auto");
+            }
+            // Handle max-width attribute
+            else if (trimmed.StartsWith("max-width="))
+            {
+                var value = trimmed.Substring(10);
+                style.Add($"max-width: {value}");
+            }
+        }
+        
+        var result = "";
+        if (classes.Any())
+        {
+            result += $" class=\"{string.Join(" ", classes)}\"";
+        }
+        if (style.Any())
+        {
+            result += $" style=\"{string.Join("; ", style)}\"";
+        }
+        
+        return result;
+    }private string ProcessCodeBlocks(string html)
     {
         // Add executable code block markers and handle Mermaid diagrams
         var pattern = @"<pre><code class=""language-(\w+)"">(.*?)</code></pre>";

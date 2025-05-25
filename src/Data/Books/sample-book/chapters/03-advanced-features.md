@@ -156,15 +156,48 @@ You can use emojis to make your content more engaging! 🎉 📚 💻 🚀
 
 ## Images and Assets
 
-You can include images in your books:
+You can include images in your books with flexible sizing options:
 
+### Basic Image
 ```markdown
-![Sample Diagram](sample-diagram.png)
+![Sample Image](kitten-papers.png)
 ```
 
-*Note: In a real book, you would place images in the `assets` folder.*
-
 ![kitten](kitten-papers.png)
+
+### Sized Images
+
+You can control image size using various methods:
+
+#### Using Size Attribute (50% width)
+```markdown
+![kitten](kitten-papers.png){size=50%}
+```
+
+![kitten](kitten-papers.png){size=50%}
+
+#### Using Width Attribute (30% width)
+```markdown
+![kitten](kitten-papers.png){width=30%}
+```
+
+![kitten](kitten-papers.png){width=30%}
+
+#### Using CSS Classes
+```markdown
+![kitten](kitten-papers.png){.img-medium .img-center}
+```
+
+![kitten](kitten-papers.png){.img-medium .img-center}
+
+#### Using Max-Width (200px)
+```markdown
+![kitten](kitten-papers.png){max-width=200px}
+```
+
+![kitten](kitten-papers.png){max-width=200px}
+
+*Note: Images are stored in the book's `assets` folder and can be sized using attributes like `{size=50%}`, `{width=30%}`, or CSS classes like `{.img-medium}`.*
 
 
 ## Performance Features
