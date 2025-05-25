@@ -9,11 +9,13 @@ public class ChapterController : ControllerBase
 {
     private readonly IChapterService _chapterService;
     private readonly IMarkdownService _markdownService;
+    private readonly IWebHostEnvironment _environment;
 
-    public ChapterController(IChapterService chapterService, IMarkdownService markdownService)
+    public ChapterController(IChapterService chapterService, IMarkdownService markdownService, IWebHostEnvironment environment)
     {
         _chapterService = chapterService;
         _markdownService = markdownService;
+        _environment = environment;
     }
 
     [HttpGet("{bookId}/{chapterId}")]

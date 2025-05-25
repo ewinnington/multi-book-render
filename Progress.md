@@ -129,6 +129,7 @@ src/
 - [x] **Math Rendering (KaTeX)**: LaTeX expressions render correctly with $$ and $ delimiters
 - [x] **Mermaid Diagrams**: Flowcharts, sequence diagrams, and other Mermaid diagrams render properly
 - [x] **Code Syntax Highlighting**: Prism.js provides syntax highlighting for multiple languages
+- [x] **Image Assets**: Book images served correctly via BooksController API endpoint
 - [x] **Responsive Design**: UI works correctly on desktop and mobile devices
 
 ### Core Features Completed ✅
