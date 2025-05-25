@@ -5,116 +5,487 @@
     var book = ViewBag.Book as BookRenderer.Core.Models.Book;
 }
 
-<div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2>✏️ Edit Chapter</h2>
-                <h4 class="text-muted">@book?.Title</h4>
-            </div>
-            <div>
-                <a asp-action="ManageChapters" asp-route-bookId="@Model.BookId" class="btn btn-outline-secondary">Back to Chapters</a>
-                <a asp-controller="Book" asp-action="Read" asp-route-id="@Model.BookId" asp-route-chapter="@Model.Order" 
-                   class="btn btn-outline-primary" target="_blank">Preview</a>
-            </div>
+<div class="editor-container">
+    <!-- Header Bar -->
+    <div class="editor-header">
+        <div class="header-left">
+            <h4 class="mb-0">✏️ Edit Chapter: @Model.Title</h4>
+            <small class="text-muted">@book?.Title</small>
         </div>
-        
-        @if (!string.IsNullOrEmpty(ViewBag.Error))
-        {
-            <div class="alert alert-danger" role="alert">
-                @ViewBag.Error
-            </div>
-        }        <form method="post">
-            <input type="hidden" asp-for="BookId" />
-            <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="FileName" />
-            <input type="hidden" asp-for="CreatedAt" />
-
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label asp-for="Order" class="form-label">Chapter Order *</label>
-                        <input asp-for="Order" type="number" min="1" class="form-control" required>
-                        <small class="form-text text-muted">The order of this chapter in the book</small>
-                    </div>
-                </div>
-                <div class="col-md-9">
-                    <div class="mb-3">
-                        <label asp-for="Title" class="form-label">Chapter Title *</label>
-                        <input asp-for="Title" class="form-control" required placeholder="Enter chapter title">
-                    </div>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Content" class="form-label">Content *</label>
-                <textarea asp-for="Content" class="form-control" rows="20" required placeholder="Write your chapter content in Markdown format..."></textarea>
-                <small class="form-text text-muted">
-                    You can use Markdown formatting. 
-                    <a href="https://www.markdownguide.org/basic-syntax/" target="_blank">Learn Markdown syntax</a>
-                </small>
-            </div>
-
-            <div class="mb-3">
-                <button type="submit" class="btn btn-primary">Update Chapter</button>
-                <a asp-action="ManageChapters" asp-route-bookId="@Model.BookId" class="btn btn-outline-secondary">Cancel</a>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">💡 Markdown Tips</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Headers</h6>
-                        <code># Heading 1</code><br>
-                        <code>## Heading 2</code><br>
-                        <code>### Heading 3</code><br><br>
-                        
-                        <h6>Text Formatting</h6>
-                        <code>**bold text**</code><br>
-                        <code>*italic text*</code><br>
-                        <code>`inline code`</code><br>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Lists</h6>
-                        <code>- Item 1</code><br>
-                        <code>- Item 2</code><br><br>
-                        
-                        <h6>Code Blocks</h6>
-                        <code>```python</code><br>
-                        <code>print("Hello World")</code><br>
-                        <code>```</code><br>
-                    </div>
-                </div>
-            </div>
+        <div class="header-right">
+            <a asp-action="ManageChapters" asp-route-bookId="@Model.BookId" class="btn btn-sm btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <a asp-controller="Book" asp-action="Read" asp-route-id="@Model.BookId" asp-route-chapter="@Model.Order" 
+               class="btn btn-sm btn-outline-primary" target="_blank">
+                <i class="fas fa-eye"></i> Preview
+            </a>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">📊 Chapter Info</h5>
+
+    @if (!string.IsNullOrEmpty(ViewBag.Error))
+    {
+        <div class="alert alert-danger" role="alert">
+            @ViewBag.Error
+        </div>
+    }
+
+    <div class="editor-content">
+        <!-- Main Editor Area -->
+        <div class="editor-main">
+            <form method="post" class="h-100" id="chapter-form">
+                <input type="hidden" asp-for="BookId" />
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="FileName" />
+                <input type="hidden" asp-for="CreatedAt" />
+
+                <!-- Markdown Toolbar -->
+                <div class="markdown-toolbar">
+                    <div class="toolbar-group">
+                        <button type="button" class="toolbar-btn" title="Bold (Ctrl+B)" data-action="bold">
+                            <i class="fas fa-bold"></i>
+                        </button>
+                        <button type="button" class="toolbar-btn" title="Italic (Ctrl+I)" data-action="italic">
+                            <i class="fas fa-italic"></i>
+                        </button>
+                        <button type="button" class="toolbar-btn" title="Link (Ctrl+K)" data-action="link">
+                            <i class="fas fa-link"></i>
+                        </button>
+                    </div>
+                    <div class="toolbar-group">
+                        <button type="button" class="toolbar-btn" title="Heading 1" data-action="h1">H1</button>
+                        <button type="button" class="toolbar-btn" title="Heading 2" data-action="h2">H2</button>
+                        <button type="button" class="toolbar-btn" title="Heading 3" data-action="h3">H3</button>
+                    </div>
+                    <div class="toolbar-group">
+                        <button type="button" class="toolbar-btn" title="Code Block" data-action="code">
+                            <i class="fas fa-code"></i>
+                        </button>
+                        <button type="button" class="toolbar-btn" title="Quote" data-action="quote">
+                            <i class="fas fa-quote-left"></i>
+                        </button>
+                        <button type="button" class="toolbar-btn" title="List" data-action="list">
+                            <i class="fas fa-list-ul"></i>
+                        </button>
+                    </div>
+                    <div class="toolbar-spacer"></div>
+                    <div class="toolbar-info">
+                        <span id="char-count">@(Model.Content?.Length ?? 0) chars</span>
+                    </div>
+                </div>
+
+                <!-- Editor Textarea -->
+                <textarea asp-for="Content" id="content-editor" class="editor-textarea" 
+                          placeholder="Write your chapter content in Markdown format..." required></textarea>
+
+                <!-- Action Bar -->
+                <div class="editor-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Chapter
+                    </button>
+                    <a asp-action="ManageChapters" asp-route-bookId="@Model.BookId" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                    <small class="text-muted ms-auto">Auto-save enabled</small>
+                </div>
+            </form>
+        </div>
+
+        <!-- Side Panel -->
+        <div class="editor-sidebar">
+            <!-- Chapter Settings -->
+            <div class="sidebar-section">
+                <h6 class="sidebar-title">📝 Chapter Settings</h6>
+                <div class="mb-3">
+                    <label asp-for="Order" class="form-label">Chapter Order</label>
+                    <input asp-for="Order" type="number" min="1" class="form-control form-control-sm" required 
+                           form="chapter-form">
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label">Chapter Title</label>
+                    <input asp-for="Title" class="form-control form-control-sm" required 
+                           placeholder="Enter chapter title" form="chapter-form">
+                </div>
             </div>
-            <div class="card-body">
-                <strong>Chapter:</strong> @Model.Order<br>
-                <strong>Title:</strong> @Model.Title<br>
-                <strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy")<br>
-                <strong>Last Updated:</strong> @Model.UpdatedAt.ToString("MMM dd, yyyy")<br>
-                <strong>Content Length:</strong> @(Model.Content?.Length ?? 0) characters
+
+            <!-- Chapter Info -->
+            <div class="sidebar-section">
+                <h6 class="sidebar-title">📊 Chapter Info</h6>
+                <div class="info-item">
+                    <strong>Chapter:</strong> @Model.Order
+                </div>
+                <div class="info-item">
+                    <strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy")
+                </div>
+                <div class="info-item">
+                    <strong>Updated:</strong> @Model.UpdatedAt.ToString("MMM dd, yyyy")
+                </div>
+                <div class="info-item">
+                    <strong>Length:</strong> <span id="content-length">@(Model.Content?.Length ?? 0)</span> characters
+                </div>
+            </div>
+
+            <!-- Markdown Tips -->
+            <div class="sidebar-section">
+                <h6 class="sidebar-title">💡 Markdown Tips</h6>
+                <div class="markdown-tips">
+                    <div class="tip-category">
+                        <strong>Headers</strong>
+                        <div class="tip-item"><code># Heading 1</code></div>
+                        <div class="tip-item"><code>## Heading 2</code></div>
+                        <div class="tip-item"><code>### Heading 3</code></div>
+                    </div>
+                    
+                    <div class="tip-category">
+                        <strong>Formatting</strong>
+                        <div class="tip-item"><code>**bold**</code></div>
+                        <div class="tip-item"><code>*italic*</code></div>
+                        <div class="tip-item"><code>`code`</code></div>
+                    </div>
+                    
+                    <div class="tip-category">
+                        <strong>Lists & Code</strong>
+                        <div class="tip-item"><code>- List item</code></div>
+                        <div class="tip-item"><code>```language</code></div>
+                    </div>
+                </div>
+                <a href="https://www.markdownguide.org/basic-syntax/" target="_blank" class="btn btn-sm btn-outline-info w-100 mt-2">
+                    <i class="fas fa-external-link-alt"></i> Full Guide
+                </a>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-.form-control[rows="20"] {
+/* Editor Layout */
+.editor-container {
+    position: fixed;
+    top: 56px; /* Account for navbar */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--bs-body-bg);
+    z-index: 100;
+}
+
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    flex-shrink: 0;
+}
+
+.editor-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.editor-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.editor-main form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.editor-sidebar {
+    width: 320px;
+    border-left: 1px solid var(--bs-border-color);
+    background: var(--bs-light);
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+/* Markdown Toolbar */
+.markdown-toolbar {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    background: var(--bs-light);
+    flex-shrink: 0;
+}
+
+.toolbar-group {
+    display: flex;
+    margin-right: 1rem;
+}
+
+.toolbar-btn {
+    border: none;
+    background: transparent;
+    padding: 0.375rem 0.5rem;
+    margin-right: 0.25rem;
+    border-radius: 0.25rem;
+    color: var(--bs-body-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.toolbar-btn:hover {
+    background: var(--bs-secondary-bg);
+}
+
+.toolbar-spacer {
+    flex: 1;
+}
+
+.toolbar-info {
+    font-size: 0.875rem;
+    color: var(--bs-text-muted);
+}
+
+/* Editor Textarea */
+.editor-textarea {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 1.5rem;
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 14px;
+    line-height: 1.6;
+    resize: none;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.editor-textarea:focus {
+    box-shadow: none;
+}
+
+/* Editor Actions */
+.editor-actions {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--bs-border-color);
+    background: var(--bs-light);
+    flex-shrink: 0;
+}
+
+.editor-actions .btn + .btn {
+    margin-left: 0.5rem;
+}
+
+/* Sidebar Sections */
+.sidebar-section {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.sidebar-title {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+}
+
+.info-item {
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.markdown-tips {
+    font-size: 0.8rem;
+}
+
+.tip-category {
+    margin-bottom: 1rem;
+}
+
+.tip-category strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--bs-body-color);
+}
+
+.tip-item {
+    margin-bottom: 0.125rem;
+}
+
+.tip-item code {
+    font-size: 0.75rem;
+    background: var(--bs-secondary-bg);
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+}
+
+/* Mobile Responsive */
+@@media (max-width: 768px) {
+    .editor-container {
+        top: 56px;
+    }
+    
+    .editor-content {
+        flex-direction: column;
+    }
+    
+    .editor-sidebar {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--bs-border-color);
+        max-height: 40vh;
+        order: -1;
+    }
+    
+    .editor-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    .header-left, .header-right {
+        text-align: center;
+    }
+    
+    .markdown-toolbar {
+        flex-wrap: wrap;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .toolbar-group {
+        margin-right: 0.5rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .sidebar-section {
+        padding: 1rem;
+    }
+}
+
+/* Dark theme adjustments */
+[data-bs-theme="dark"] .editor-sidebar {
+    background: var(--bs-dark);
+}
+
+[data-bs-theme="dark"] .markdown-toolbar,
+[data-bs-theme="dark"] .editor-actions {
+    background: var(--bs-dark);
+    border-color: var(--bs-border-color);
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('content-editor');
+    const charCount = document.getElementById('char-count');
+    const contentLength = document.getElementById('content-length');
+    
+    // Update character count
+    function updateCharCount() {
+        const count = textarea.value.length;
+        charCount.textContent = count + ' chars';
+        contentLength.textContent = count;
+    }
+    
+    textarea.addEventListener('input', updateCharCount);
+    
+    // Toolbar actions
+    document.querySelectorAll('.toolbar-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.dataset.action;
+            insertMarkdown(action);
+        });
+    });
+    
+    // Keyboard shortcuts
+    textarea.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key) {
+                case 'b':
+                    e.preventDefault();
+                    insertMarkdown('bold');
+                    break;
+                case 'i':
+                    e.preventDefault();
+                    insertMarkdown('italic');
+                    break;
+                case 'k':
+                    e.preventDefault();
+                    insertMarkdown('link');
+                    break;
+            }
+        }
+        
+        // Tab support
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            insertTab();
+        }
+    });
+    
+    function insertMarkdown(action) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textarea.value.substring(start, end);
+        let replacement = '';
+        
+        switch(action) {
+            case 'bold':
+                replacement = `**${selectedText || 'bold text'}**`;
+                break;
+            case 'italic':
+                replacement = `*${selectedText || 'italic text'}*`;
+                break;
+            case 'link':
+                replacement = `[${selectedText || 'link text'}](url)`;
+                break;
+            case 'h1':
+                replacement = `# ${selectedText || 'Heading 1'}`;
+                break;
+            case 'h2':
+                replacement = `## ${selectedText || 'Heading 2'}`;
+                break;
+            case 'h3':
+                replacement = `### ${selectedText || 'Heading 3'}`;
+                break;
+            case 'code':
+                replacement = selectedText.includes('\n') 
+                    ? `\`\`\`\n${selectedText || 'code'}\n\`\`\``
+                    : `\`${selectedText || 'code'}\``;
+                break;
+            case 'quote':
+                replacement = `> ${selectedText || 'quote'}`;
+                break;
+            case 'list':
+                replacement = `- ${selectedText || 'list item'}`;
+                break;
+        }
+        
+        textarea.setRangeText(replacement, start, end, 'end');
+        textarea.focus();
+        updateCharCount();
+    }
+    
+    function insertTab() {
+        const start = textarea.selectionStart;
+        textarea.setRangeText('    ', start, start, 'end');
+        textarea.focus();
+    }
+    
+    // Auto-save functionality (placeholder)
+    let autoSaveTimeout;
+    textarea.addEventListener('input', function() {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+            // Auto-save implementation would go here
+            console.log('Auto-saving...');
+        }, 2000);
+    });
+});
+</script>
