@@ -10,11 +10,13 @@
             <div>
                 <h2>📖 Manage Chapters</h2>
                 <h4 class="text-muted">@Model.Book.Title</h4>
-            </div>
-            <div>
+            </div>            <div>
                 <a asp-action="CreateChapter" asp-route-bookId="@Model.Book.Id" class="btn btn-primary">
                     <i class="bi bi-plus"></i> Add Chapter
                 </a>
+                <button type="button" class="btn btn-secondary" onclick="toggleAssetManagement()">
+                    📁 Manage Assets
+                </button>
                 <a asp-action="Index" class="btn btn-outline-secondary">Back to Dashboard</a>
             </div>
         </div>
@@ -96,7 +98,54 @@
                     </div>
                 </div>
             </div>
-        }
+        }    </div>
+</div>
+
+<!-- Asset Management Section -->
+<div class="row mt-4" id="assetManagement" style="display: none;">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📁 Asset Management</h5>
+            </div>
+            <div class="card-body">
+                <!-- File Upload Section -->
+                <div class="mb-4">
+                    <h6>Upload New Assets</h6>
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <input type="file" class="form-control" id="assetFiles" multiple 
+                                   accept=".png,.jpg,.jpeg,.gif,.svg,.webp,.ico,.pdf,.txt,.md">
+                            <div class="form-text">
+                                Supported formats: PNG, JPG, GIF, SVG, WebP, ICO, PDF, TXT, MD (Max 10MB per file)
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="uploadAssets()">
+                            <span id="uploadSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            Upload Assets
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Asset List Section -->
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6>Current Assets</h6>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshAssets()">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                    <div id="assetsList">
+                        <div class="text-center text-muted">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p>Loading assets...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -118,8 +167,7 @@
                         <strong>Created:</strong> @Model.Book.CreatedAt.ToString("MMM dd, yyyy")<br>
                         <strong>Last Updated:</strong> @Model.Book.UpdatedAt.ToString("MMM dd, yyyy")<br>
                     </div>
-                </div>
-                <div class="mt-3">
+                </div>                <div class="mt-3">
                     <a asp-action="EditBook" asp-route-id="@Model.Book.Id" class="btn btn-outline-primary">Edit Book Details</a>
                     <a asp-controller="Book" asp-action="Read" asp-route-id="@Model.Book.Id" class="btn btn-outline-success" target="_blank">View Book</a>
                 </div>
@@ -127,3 +175,207 @@
         </div>
     </div>
 </div>
+
+<script>
+    const bookId = '@Model.Book.Id';
+
+    function toggleAssetManagement() {
+        const assetSection = document.getElementById('assetManagement');
+        if (assetSection.style.display === 'none') {
+            assetSection.style.display = 'block';
+            refreshAssets();
+        } else {
+            assetSection.style.display = 'none';
+        }
+    }
+
+    async function refreshAssets() {
+        const assetsList = document.getElementById('assetsList');
+        assetsList.innerHTML = `
+            <div class="text-center text-muted">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading assets...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(`/api/books/${bookId}/assets`);
+            if (response.ok) {
+                const data = await response.json();
+                displayAssets(data.assets);
+            } else {
+                assetsList.innerHTML = `
+                    <div class="alert alert-warning">
+                        Failed to load assets. ${response.status === 404 ? 'No assets found.' : 'Server error.'}
+                    </div>
+                `;
+            }
+        } catch (error) {
+            assetsList.innerHTML = `
+                <div class="alert alert-danger">
+                    Error loading assets: ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    function displayAssets(assets) {
+        const assetsList = document.getElementById('assetsList');
+        
+        if (assets.length === 0) {
+            assetsList.innerHTML = `
+                <div class="text-center text-muted py-3">
+                    <p>No assets uploaded yet.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const assetsHtml = assets.map(asset => {
+            const isImage = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico'].includes(asset.extension);
+            const fileSize = formatFileSize(asset.size);
+            const iconClass = getFileIcon(asset.extension);
+            
+            return `
+                <div class="asset-item border rounded p-3 mb-2">
+                    <div class="row align-items-center">
+                        <div class="col-md-1">
+                            ${isImage ? 
+                                `<img src="/api/books/${bookId}/assets/${asset.name}" alt="${asset.name}" class="img-thumbnail" style="max-width: 40px; max-height: 40px;">` :
+                                `<i class="${iconClass} fa-2x text-muted"></i>`
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <strong>${asset.name}</strong><br>
+                            <small class="text-muted">${fileSize} • Modified: ${new Date(asset.lastModified).toLocaleDateString()}</small>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control form-control-sm" 
+                                   value="/api/books/${bookId}/assets/${asset.name}" 
+                                   readonly onclick="this.select()">
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteAsset('${asset.name}')">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        assetsList.innerHTML = assetsHtml;
+    }
+
+    async function uploadAssets() {
+        const fileInput = document.getElementById('assetFiles');
+        const files = fileInput.files;
+        const uploadSpinner = document.getElementById('uploadSpinner');
+
+        if (files.length === 0) {
+            alert('Please select at least one file to upload.');
+            return;
+        }
+
+        uploadSpinner.classList.remove('d-none');
+
+        try {
+            for (let file of files) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch(`/api/books/${bookId}/assets`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(`Failed to upload ${file.name}: ${error}`);
+                }
+            }
+
+            // Clear the file input
+            fileInput.value = '';
+            
+            // Show success message
+            showMessage('Assets uploaded successfully!', 'success');
+            
+            // Refresh the assets list
+            refreshAssets();
+        } catch (error) {
+            showMessage(`Upload failed: ${error.message}`, 'danger');
+        } finally {
+            uploadSpinner.classList.add('d-none');
+        }
+    }
+
+    async function deleteAsset(assetName) {
+        if (!confirm(`Are you sure you want to delete "${assetName}"?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/books/${bookId}/assets/${encodeURIComponent(assetName)}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                showMessage(`Asset "${assetName}" deleted successfully!`, 'success');
+                refreshAssets();
+            } else {
+                const error = await response.text();
+                throw new Error(error);
+            }
+        } catch (error) {
+            showMessage(`Failed to delete asset: ${error.message}`, 'danger');
+        }
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function getFileIcon(extension) {
+        const iconMap = {
+            '.pdf': 'far fa-file-pdf',
+            '.txt': 'far fa-file-alt',
+            '.md': 'fab fa-markdown',
+            '.png': 'far fa-file-image',
+            '.jpg': 'far fa-file-image',
+            '.jpeg': 'far fa-file-image',
+            '.gif': 'far fa-file-image',
+            '.svg': 'far fa-file-image',
+            '.webp': 'far fa-file-image',
+            '.ico': 'far fa-file-image'
+        };
+        return iconMap[extension] || 'far fa-file';
+    }
+
+    function showMessage(message, type) {
+        // Create and show a temporary alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Insert at the top of the asset management section
+        const assetCard = document.querySelector('#assetManagement .card-body');
+        assetCard.insertBefore(alertDiv, assetCard.firstChild);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+</script>

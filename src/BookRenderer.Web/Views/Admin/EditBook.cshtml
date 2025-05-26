@@ -42,14 +42,26 @@
                         <input asp-for="CoverColor" type="color" class="form-control form-control-color">
                         <small class="form-text text-muted">Choose a color for the book cover</small>
                     </div>
-                </div>
-                <div class="col-md-6">
+                </div>                <div class="col-md-6">
                     <div class="mb-3 form-check">
-                        <input asp-for="IsPublic" class="form-check-input" type="checkbox">
+                        <input asp-for="IsPublic" class="form-check-input" type="checkbox" id="isPublicCheck">
                         <label asp-for="IsPublic" class="form-check-label">
                             Public Book
                         </label>
                         <small class="form-text text-muted">If unchecked, only assigned users can access this book</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Assignment Section for Private Books -->
+            <div class="mb-3" id="userAssignmentSection" style="display: @(Model.IsPublic ? "none" : "block");">
+                <label class="form-label">📝 Allowed Users (Private Book Access)</label>
+                <div class="border rounded p-3">
+                    <div class="mb-2">
+                        <small class="text-muted">Select which users can access this private book:</small>
+                    </div>
+                    <div id="allowedUsersList">
+                        <!-- Users will be loaded here via JavaScript -->
                     </div>
                 </div>
             </div>
@@ -90,4 +102,75 @@
     document.getElementById('CoverColor').addEventListener('input', function() {
         document.querySelector('.book-preview-card').style.backgroundColor = this.value;
     });
+
+    // Handle public/private book toggle
+    document.getElementById('isPublicCheck').addEventListener('change', function() {
+        const userAssignmentSection = document.getElementById('userAssignmentSection');
+        userAssignmentSection.style.display = this.checked ? 'none' : 'block';
+        if (!this.checked) {
+            loadUsers();
+        }
+    });
+
+    let allUsers = [];
+    let allowedUsers = @Html.Raw(Json.Serialize(Model.AllowedUsers ?? new List<string>()));
+
+    // Load users for assignment
+    async function loadUsers() {
+        try {
+            const response = await fetch('/Admin/GetAllUsers');
+            if (response.ok) {
+                allUsers = await response.json();
+                renderUsersList();
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+        }
+    }
+
+    function renderUsersList() {
+        const container = document.getElementById('allowedUsersList');
+        const userCheckboxes = allUsers.map(user => {
+            const isChecked = allowedUsers.includes(user.username);
+            return `
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" 
+                           value="${user.username}" 
+                           id="user_${user.username}"
+                           ${isChecked ? 'checked' : ''}
+                           onchange="updateAllowedUsers(this)">
+                    <label class="form-check-label" for="user_${user.username}">
+                        <strong>${user.username}</strong> 
+                        <small class="text-muted">(${user.email || 'No email'}) - ${user.role}</small>
+                    </label>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = userCheckboxes + 
+            '<input type="hidden" name="AllowedUsersJson" id="allowedUsersJson" value="' + 
+            JSON.stringify(allowedUsers).replace(/"/g, '&quot;') + '">';
+    }
+
+    function updateAllowedUsers(checkbox) {
+        const username = checkbox.value;
+        if (checkbox.checked) {
+            if (!allowedUsers.includes(username)) {
+                allowedUsers.push(username);
+            }
+        } else {
+            const index = allowedUsers.indexOf(username);
+            if (index > -1) {
+                allowedUsers.splice(index, 1);
+            }
+        }
+        
+        // Update hidden field
+        document.getElementById('allowedUsersJson').value = JSON.stringify(allowedUsers);
+    }
+
+    // Load users on page load if book is private
+    if (!document.getElementById('isPublicCheck').checked) {
+        loadUsers();
+    }
 </script>

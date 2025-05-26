@@ -1,4 +1,5 @@
 using BookRenderer.Core.Services;
+using BookRenderer.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Security.Claims;
@@ -37,8 +38,29 @@ public class BaseController : Controller
         else
         {
             ViewBag.UserTheme = "light";
+        }        await next();
+    }
+
+    protected User? GetCurrentUser()
+    {
+        if (User?.Identity?.IsAuthenticated != true || _userService == null)
+            return null;
+
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                // Note: This is async but we can't make this method async without changing all controllers
+                // For now, we'll use a synchronous approach or cache the user
+                return _userService.GetUserByIdAsync(userId).GetAwaiter().GetResult();
+            }
+        }
+        catch
+        {
+            // If there's an error, return null
         }
 
-        await next();
+        return null;
     }
 }

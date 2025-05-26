@@ -41,16 +41,32 @@ public class AdminController : BaseController
     public IActionResult CreateBook()
     {
         return View();
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> CreateBook(Book book)
+    }    [HttpPost]
+    public async Task<IActionResult> CreateBook(Book book, string? allowedUsersJson)
     {
         if (!ModelState.IsValid)
             return View(book);
 
         try
         {
+            // Parse allowed users JSON if provided
+            if (!string.IsNullOrEmpty(allowedUsersJson))
+            {
+                try
+                {
+                    book.AllowedUsers = System.Text.Json.JsonSerializer.Deserialize<List<string>>(allowedUsersJson) ?? new List<string>();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error parsing AllowedUsersJson: {ex.Message}");
+                    book.AllowedUsers = new List<string>();
+                }
+            }
+            else
+            {
+                book.AllowedUsers = new List<string>();
+            }
+
             var createdBook = await _bookService.CreateBookAsync(book);
             TempData["Success"] = $"Book '{createdBook.Title}' created successfully.";
             return RedirectToAction("Index");
@@ -70,16 +86,31 @@ public class AdminController : BaseController
             return NotFound();
 
         return View(book);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> EditBook(Book book)
+    }    [HttpPost]
+    public async Task<IActionResult> EditBook(Book book, string? allowedUsersJson)
     {
         if (!ModelState.IsValid)
             return View(book);
 
         try
-        {
+        {            // Parse allowed users JSON if provided
+            if (!string.IsNullOrEmpty(allowedUsersJson))
+            {
+                try
+                {
+                    book.AllowedUsers = System.Text.Json.JsonSerializer.Deserialize<List<string>>(allowedUsersJson) ?? new List<string>();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error parsing AllowedUsersJson: {ex.Message}");
+                    book.AllowedUsers = new List<string>();
+                }
+            }
+            else
+            {
+                book.AllowedUsers = new List<string>();
+            }
+
             await _bookService.UpdateBookAsync(book);
             TempData["Success"] = $"Book '{book.Title}' updated successfully.";
             return RedirectToAction("Index");
@@ -315,6 +346,25 @@ public class AdminController : BaseController
         {
             TempData["Error"] = $"Error deleting user: {ex.Message}";
         }        return RedirectToAction("ManageUsers");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        try
+        {
+            var users = await _userService.GetAllUsersAsync();
+            var userList = users.Select(u => new { 
+                username = u.Username, 
+                email = u.Email, 
+                role = u.Role 
+            });
+            return Json(userList);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error loading users: {ex.Message}");
+        }
     }
 
     #endregion
