@@ -102,6 +102,9 @@ public class ChapterService : IChapterService
             chapter.Content = $"# {chapter.Title}\n\nThis chapter is under construction.";
         }
 
+        // Ensure the first heading matches the provided title
+        chapter.Content = ApplyTitleHeader(chapter.Content, chapter.Title);
+
         Console.WriteLine($"[DEBUG] CreateChapterAsync - Writing file to: {chapterPath}");
         await _fileSystemService.WriteFileAsync(chapterPath, chapter.Content);
         Console.WriteLine($"[DEBUG] CreateChapterAsync - File written successfully");
@@ -140,6 +143,9 @@ public class ChapterService : IChapterService
         }
         
         Console.WriteLine($"[DEBUG] UpdateChapterAsync - Writing file to: {chapterPath}");
+
+        // Ensure the first heading matches the updated title
+        chapter.Content = ApplyTitleHeader(chapter.Content, chapter.Title);
         await _fileSystemService.WriteFileAsync(chapterPath, chapter.Content);
         Console.WriteLine($"[DEBUG] UpdateChapterAsync - File written successfully");
 
@@ -293,6 +299,24 @@ public class ChapterService : IChapterService
             }
         }        return null;
     }
+
+    private string ApplyTitleHeader(string content, string title)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return $"# {title}\n";
+
+        var lines = content.Split('\n').ToList();
+        if (lines.Count > 0 && lines[0].TrimStart().StartsWith("# "))
+        {
+            lines[0] = "# " + title;
+        }
+        else
+        {
+            lines.Insert(0, "# " + title);
+        }
+
+        return string.Join('\n', lines);
+    }
       private string? FindSolutionDirectory(string startingPath)
     {
         var directory = new DirectoryInfo(startingPath);
@@ -332,6 +356,9 @@ public class ChapterService : IChapterService
             switch (operation)
             {
                 case ChapterOperation.Add:
+                    // Remove any existing entry with the same id or filename
+                    chapters.RemoveAll(c => c.Id == chapter.Id || c.FileName == chapter.FileName);
+
                     // Add the new chapter (without content to keep JSON size reasonable)
                     var chapterMetadata = new Chapter
                     {
@@ -340,7 +367,7 @@ public class ChapterService : IChapterService
                         Title = chapter.Title,
                         FileName = chapter.FileName,
                         Order = chapter.Order,
-                        Content = "", // Don't store content in book.json
+                        Content = string.Empty, // Don't store content in book.json
                         IsPublished = chapter.IsPublished,
                         CreatedAt = chapter.CreatedAt,
                         UpdatedAt = chapter.UpdatedAt

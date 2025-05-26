@@ -161,8 +161,23 @@ public class BookService : IBookService
             
             if (book != null)
             {
-                // Load chapters
-                await LoadChaptersAsync(book, bookPath);
+                // Only scan the filesystem for chapters if none are defined in metadata
+                if (book.Chapters == null || book.Chapters.Count == 0)
+                {
+                    await LoadChaptersAsync(book, bookPath);
+                }
+
+                // Ensure each chapter has the correct BookId and is ordered
+                if (book.Chapters != null)
+                {
+                    foreach (var ch in book.Chapters)
+                    {
+                        if (string.IsNullOrEmpty(ch.BookId))
+                            ch.BookId = book.Id;
+                    }
+
+                    book.Chapters = book.Chapters.OrderBy(c => c.Order).ToList();
+                }
             }
 
             return book;
