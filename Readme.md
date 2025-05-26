@@ -11,6 +11,13 @@ MBR is a markdown renderer that hosts books with:
 
 It is based on .net9
 
+## Idea: 
+
+Inspired by 37signal's [ONCE Writebook](https://once.com/writebook), but wanting more features than provided, I asked Claude 4 Sonnet in VSCode to develop a Markdown book hosting with files instead of SQLITE DB of WriteBook, with LaTeX Maths, Mermaid Diagrams, Code Highlighting, ... Features will be added slowly. Not for production use - not battle tested.
+
+If you are looking for a polished markdown book experience - use https://once.com/writebook 
+
+
 # Journey 
 
 ## User journey
