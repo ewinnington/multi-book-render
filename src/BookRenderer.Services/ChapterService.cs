@@ -31,51 +31,128 @@ public class ChapterService : IChapterService
         Console.WriteLine($"[DEBUG] ChapterService constructor - AppContext.BaseDirectory: {AppContext.BaseDirectory}");
     }public async Task<IEnumerable<Chapter>> GetChaptersAsync(string bookId)
     {
-        var chaptersPath = Path.Combine(_dataPath, bookId, "chapters");
-        Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Looking for chapters in: {chaptersPath}");
-        
-        if (!await _fileSystemService.DirectoryExistsAsync(chaptersPath))
+        Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - BookId: {bookId}");
+        var book = await _bookService.GetBookByIdAsync(bookId);
+
+        if (book == null || book.Chapters == null || !book.Chapters.Any())
         {
-            Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Directory does not exist: {chaptersPath}");
+            Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Book metadata or chapters not found for BookId: {bookId}");
             return Enumerable.Empty<Chapter>();
         }
 
-        var chapterFiles = await _fileSystemService.GetFilesAsync(chaptersPath, "*.md");
-        Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Found {chapterFiles.Count()} .md files");
-        
         var chapters = new List<Chapter>();
-
-        foreach (var chapterFile in chapterFiles)
+        foreach (var chapterMetadata in book.Chapters.OrderBy(c => c.Order))
         {
-            Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Processing file: {chapterFile}");
-            var chapter = await LoadChapterFromFileAsync(chapterFile, bookId);
-            if (chapter != null)
+            if (string.IsNullOrEmpty(chapterMetadata.FileName))
             {
-                Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Loaded chapter: {chapter.Id}, Order: {chapter.Order}");
-                chapters.Add(chapter);
+                Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Skipping chapter with missing FileName: {chapterMetadata.Id} - {chapterMetadata.Title}");
+                continue;
+            }
+
+            var chapterPath = Path.Combine(_dataPath, bookId, "chapters", chapterMetadata.FileName);
+            Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Loading content for: {chapterPath}");
+            string content = string.Empty;
+            DateTime fileLastWriteTimeUtc = chapterMetadata.UpdatedAt; // Default to metadata update time
+
+            if (await _fileSystemService.FileExistsAsync(chapterPath))
+            {
+                content = await _fileSystemService.ReadFileAsync(chapterPath);
+                // Optionally, get actual file modification time if relevant
+                // var fileInfo = new FileInfo(chapterPath); // Requires System.IO, ensure _fileSystemService can provide this
+                // fileLastWriteTimeUtc = fileInfo.LastWriteTimeUtc; 
             }
             else
             {
-                Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Failed to load chapter from: {chapterFile}");
+                Console.WriteLine($"[WARNING] ChapterService.GetChaptersAsync - Chapter file not found, but listed in metadata: {chapterPath}. Content will be empty.");
+                // Decide if this chapter should be skipped or returned with empty content
             }
+
+            chapters.Add(new Chapter
+            {
+                Id = chapterMetadata.Id,
+                BookId = bookId, // or chapterMetadata.BookId if it's guaranteed to be set
+                Title = chapterMetadata.Title, // Use title from metadata
+                FileName = chapterMetadata.FileName,
+                Order = chapterMetadata.Order,
+                Content = content,
+                IsPublished = chapterMetadata.IsPublished,
+                CreatedAt = chapterMetadata.CreatedAt,
+                // Use metadata UpdatedAt, as it reflects changes to title/order.
+                // Content changes are saved with chapter.UpdatedAt in UpdateChapterAsync.
+                UpdatedAt = chapterMetadata.UpdatedAt 
+            });
         }
 
-        Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Returning {chapters.Count} chapters");
-        return chapters.OrderBy(c => c.Order);
-    }public async Task<Chapter?> GetChapterAsync(string bookId, string chapterId)
+        Console.WriteLine($"[DEBUG] ChapterService.GetChaptersAsync - Returning {chapters.Count} chapters for BookId: {bookId}");
+        return chapters; // Already ordered by Order from book.Chapters query
+    }
+
+    public async Task<Chapter?> GetChapterAsync(string bookId, string chapterId)
     {
-        var chapterPath = Path.Combine(_dataPath, bookId, "chapters", $"{chapterId}.md");
-        Console.WriteLine($"[DEBUG] ChapterService.GetChapterAsync - Looking for chapter at: {chapterPath}");
-        
-        if (!await _fileSystemService.FileExistsAsync(chapterPath))
+        Console.WriteLine($"[DEBUG] ChapterService.GetChapterAsync - BookId: {bookId}, ChapterId: {chapterId}");
+        var book = await _bookService.GetBookByIdAsync(bookId);
+
+        if (book == null || book.Chapters == null)
         {
-            Console.WriteLine($"[DEBUG] Chapter file not found: {chapterPath}");
+            Console.WriteLine($"[DEBUG] ChapterService.GetChapterAsync - Book metadata not found for BookId: {bookId}");
             return null;
         }
 
-        var result = await LoadChapterFromFileAsync(chapterPath, bookId);
-        Console.WriteLine($"[DEBUG] Loaded chapter: {result?.Id} with content length: {result?.Content?.Length ?? 0}");
-        return result;
+        var chapterMetadata = book.Chapters.FirstOrDefault(c => c.Id == chapterId);
+
+        if (chapterMetadata == null)
+        {
+            Console.WriteLine($"[DEBUG] ChapterService.GetChapterAsync - Chapter metadata not found for ChapterId: {chapterId} in BookId: {bookId}");
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(chapterMetadata.FileName))
+        {
+            Console.WriteLine($"[DEBUG] ChapterService.GetChapterAsync - Chapter metadata found, but FileName is missing for ChapterId: {chapterId}");
+            // Return a chapter object without content, or handle as an error
+            return new Chapter 
+            {
+                 Id = chapterMetadata.Id,
+                BookId = bookId,
+                Title = chapterMetadata.Title, // Use title from metadata
+                FileName = chapterMetadata.FileName,
+                Order = chapterMetadata.Order,
+                Content = "Error: Chapter file name is missing in metadata.",
+                IsPublished = chapterMetadata.IsPublished,
+                CreatedAt = chapterMetadata.CreatedAt,
+                UpdatedAt = chapterMetadata.UpdatedAt
+            };
+        }
+
+        var chapterPath = Path.Combine(_dataPath, bookId, "chapters", chapterMetadata.FileName);
+        Console.WriteLine($"[DEBUG] ChapterService.GetChapterAsync - Loading content from: {chapterPath}");
+        string content = string.Empty;
+        DateTime fileLastWriteTimeUtc = chapterMetadata.UpdatedAt;
+
+        if (await _fileSystemService.FileExistsAsync(chapterPath))
+        {
+            content = await _fileSystemService.ReadFileAsync(chapterPath);
+            // var fileInfo = new FileInfo(chapterPath);
+            // fileLastWriteTimeUtc = fileInfo.LastWriteTimeUtc;
+        }
+        else
+        {
+            Console.WriteLine($"[WARNING] ChapterService.GetChapterAsync - Chapter file not found: {chapterPath}. Content will be empty.");
+            content = $"Error: Chapter file '{chapterMetadata.FileName}' not found."; // Or return null, or throw
+        }
+
+        return new Chapter
+        {
+            Id = chapterMetadata.Id,
+            BookId = bookId, 
+            Title = chapterMetadata.Title, // Use title from metadata
+            FileName = chapterMetadata.FileName,
+            Order = chapterMetadata.Order,
+            Content = content,
+            IsPublished = chapterMetadata.IsPublished,
+            CreatedAt = chapterMetadata.CreatedAt,
+            UpdatedAt = chapterMetadata.UpdatedAt // Or fileLastWriteTimeUtc if more appropriate for content changes
+        };
     }
 
     public async Task<Chapter?> GetChapterByOrderAsync(string bookId, int order)
@@ -221,33 +298,43 @@ public class ChapterService : IChapterService
 
     private async Task<Chapter?> LoadChapterFromFileAsync(string chapterPath, string bookId)
     {
+        // This method is now less critical for GetChaptersAsync and GetChapterAsync 
+        // as they fetch metadata first. It could be used for other purposes or deprecated.
+        // For now, let's keep its original functionality if called directly,
+        // but it won't be used for title determination by the main methods.
         try
         {
             var content = await _fileSystemService.ReadFileAsync(chapterPath);
             var fileName = Path.GetFileName(chapterPath);
-            var chapterId = Path.GetFileNameWithoutExtension(fileName);
             
-            // Extract order from filename
+            // The chapterId should ideally come from metadata. If this method is used standalone,
+            // this is a fallback.
+            var chapterId = Path.GetFileNameWithoutExtension(fileName).Split('-').LastOrDefault() ?? Path.GetFileNameWithoutExtension(fileName);
+            
             var order = ExtractOrderFromFileName(fileName);
-            
-            // Extract title from content (first H1) or filename
+            // Title extraction here is now a fallback, metadata is source of truth.
             var title = ExtractTitleFromContent(content) ?? ExtractTitleFromFileName(fileName);
 
-            var fileInfo = new FileInfo(chapterPath);
+            // FileInfo might not be directly available via IFileSystemService,
+            // so using DateTime.MinValue or fetching from service if possible.
+            // For simplicity, we'll assume metadata provides these if needed.
+            // If this method is to be fully standalone, it needs a way to get CreatedAt/UpdatedAt.
 
             return new Chapter
             {
-                Id = chapterId,
-                Title = title,
+                Id = chapterId, // Fallback Id
+                BookId = bookId,
+                Title = title, // Fallback title
                 FileName = fileName,
-                Order = order,
+                Order = order, // Fallback order
                 Content = content,
-                CreatedAt = fileInfo.CreationTimeUtc,
-                UpdatedAt = fileInfo.LastWriteTimeUtc
+                CreatedAt = DateTime.UtcNow, // Placeholder, ideally from metadata or file system
+                UpdatedAt = DateTime.UtcNow  // Placeholder
             };
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[ERROR] LoadChapterFromFileAsync - Failed to load {chapterPath}: {ex.Message}");
             return null;
         }
     }
