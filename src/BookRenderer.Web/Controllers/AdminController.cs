@@ -153,12 +153,10 @@ public class AdminController : BaseController
         if (book == null)
             return NotFound();
 
-        var chapters = await _chapterService.GetChaptersAsync(bookId);
-        
         var viewModel = new ManageChaptersViewModel
         {
             Book = book,
-            Chapters = chapters.OrderBy(c => c.Order).ToList()
+            Chapters = book.Chapters.OrderBy(c => c.Order).ToList()
         };
 
         return View(viewModel);
