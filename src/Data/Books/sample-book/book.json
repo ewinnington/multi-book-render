@@ -16,7 +16,7 @@
       "content": "",
       "isPublished": true,
       "createdAt": "2025-05-25T10:00:00Z",
-      "updatedAt": "2025-05-25T10:00:00Z"
+      "updatedAt": "2025-05-26T15:35:00Z"
     },
     {
       "id": "02-markdown-basics",
@@ -27,7 +27,8 @@
       "isPublished": true,
       "createdAt": "2025-05-25T10:00:00Z",
       "updatedAt": "2025-05-25T10:00:00Z"
-    },    {
+    },
+    {
       "id": "03-advanced-features",
       "title": "Advanced Features",
       "fileName": "03-advanced-features.md",
@@ -50,7 +51,7 @@
   ],
   "gitRepositoryPath": "",
   "createdAt": "2025-05-25T10:00:00Z",
-  "updatedAt": "2025-05-25T10:00:00Z",
+  "updatedAt": "2025-05-26T15:45:00Z",
   "settings": {
     "allowCodeExecution": true,
     "allowedCodeLanguages": ["javascript", "python", "csharp"],
