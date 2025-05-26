@@ -10,7 +10,7 @@
   "chapters": [
     {
       "id": "01-introduction",
-      "title": "Updated Chapter Title 2",
+      "title": "Introduction",
       "fileName": "01-introduction.md",
       "order": 1,
       "content": "",
@@ -47,36 +47,6 @@
       "isPublished": true,
       "createdAt": "2025-05-25T12:00:00Z",
       "updatedAt": "2025-05-25T12:00:00Z"
-    },
-    {
-      "id": "my-custom-chapter-title-1",
-      "title": "My Custom Chapter Title 1",
-      "fileName": "05-my-custom-chapter-title-1.md",
-      "order": 5,
-      "content": "",
-      "isPublished": true,
-      "createdAt": "2025-05-26T15:30:00Z",
-      "updatedAt": "2025-05-26T15:30:00Z"
-    },
-    {
-      "id": "title-without-h1-3",
-      "title": "Title Without H1 - 3",
-      "fileName": "06-title-without-h1-3.md",
-      "order": 6,
-      "content": "",
-      "isPublished": true,
-      "createdAt": "2025-05-26T15:40:00Z",
-      "updatedAt": "2025-05-26T15:40:00Z"
-    },
-    {
-      "id": "ui-title-4",
-      "title": "UI Title 4",
-      "fileName": "07-ui-title-4.md",
-      "order": 7,
-      "content": "",
-      "isPublished": true,
-      "createdAt": "2025-05-26T15:45:00Z",
-      "updatedAt": "2025-05-26T15:45:00Z"
     }
   ],
   "gitRepositoryPath": "",
