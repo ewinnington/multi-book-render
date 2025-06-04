@@ -55,9 +55,3 @@ function reinitializeLibraries() {
     }
 }
 
-// Function for executing code blocks (placeholder for future implementation)
-async function executeCode(button) {
-    if (window.executeCode) {
-        await window.executeCode(button);
-    }
-}
