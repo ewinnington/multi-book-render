@@ -17,7 +17,7 @@ public class BaseController : Controller
 
     public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
-        // Set theme for authenticated users
+        // Set theme and preferences for authenticated users
         if (User?.Identity?.IsAuthenticated == true && _userService != null)
         {
             try
@@ -27,17 +27,20 @@ public class BaseController : Controller
                 {
                     var user = await _userService.GetUserByIdAsync(userId);
                     ViewBag.UserTheme = user?.Preferences?.Theme ?? "light";
+                    ViewBag.UserEnableCodeExecution = user?.Preferences?.EnableCodeExecution ?? false;
                 }
             }
             catch
             {
                 // If there's an error fetching user theme, default to light
                 ViewBag.UserTheme = "light";
+                ViewBag.UserEnableCodeExecution = false;
             }
         }
         else
         {
             ViewBag.UserTheme = "light";
+            ViewBag.UserEnableCodeExecution = false;
         }        await next();
     }
 
