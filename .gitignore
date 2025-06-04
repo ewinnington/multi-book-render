@@ -7,3 +7,4 @@
 /src/BookRenderer.Services/bin
 /src/BookRenderer.Web/obj
 /src/BookRenderer.Web/bin
+dotnet-install.sh

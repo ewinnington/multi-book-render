@@ -5,6 +5,8 @@
     var book = ViewBag.Book as BookRenderer.Core.Models.Book;
     var currentChapter = ViewBag.CurrentChapter as BookRenderer.Core.Models.Chapter;
     var allChapters = ViewBag.AllChapters as List<BookRenderer.Core.Models.Chapter>;
+    var allowCodeExecution = book?.Settings?.AllowCodeExecution ?? false;
+    var allowedLanguages = string.Join(',', book?.Settings?.AllowedCodeLanguages ?? new List<string>());
 }
 
 <div class="row">
@@ -59,7 +61,7 @@
 
             <!-- Chapter content -->
             <div class="chapter-body">
-                <div id="chapter-content" data-book-id="@book?.Id" data-chapter-id="@currentChapter?.Id">
+                <div id="chapter-content" data-book-id="@book?.Id" data-chapter-id="@currentChapter?.Id" data-allow-code-execution="@allowCodeExecution.ToString().ToLower()" data-allowed-languages="@allowedLanguages">
                     <!-- Content will be loaded here -->
                     <div class="text-center py-5">
                         <div class="spinner-border" role="status">
@@ -123,9 +125,5 @@
             }
         }
 
-        function executeCode(button) {
-            // TODO: Implement code execution
-            console.log('Code execution not yet implemented');
-        }
     </script>
 }
