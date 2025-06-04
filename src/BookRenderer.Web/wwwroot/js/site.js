@@ -56,7 +56,8 @@ function reinitializeLibraries() {
 }
 
 // Function for executing code blocks (placeholder for future implementation)
-function executeCode(button) {
-    console.log('Code execution not yet implemented');
-    // TODO: Implement code execution functionality
+async function executeCode(button) {
+    if (window.executeCode) {
+        await window.executeCode(button);
+    }
 }
