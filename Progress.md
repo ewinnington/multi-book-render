@@ -236,15 +236,16 @@ src/
 3. **Chapter Order Management**: Reordering chapters could use drag-and-drop enhancement
 
 ### Phase 2: Interactive Code Execution (Priority: Medium)
-- [ ] **Code Execution Framework**
-  - [ ] Server-side code execution sandbox
-  - [ ] Support for JavaScript execution
+- [x] **Client-Side JavaScript Execution**
+  - [x] "Run Code" button added to JavaScript code blocks
+  - [x] Code is executed in the browser
+  - [x] Output, return values, and errors are captured and displayed below the code block
+  - [x] Safe execution using `new Function()` to prevent scope pollution
+- [ ] **Code Execution Framework (Server-Side)**
+  - [ ] Server-side code execution sandbox for other languages (e.g., Python)
   - [ ] Support for Python code execution
-  - [ ] Code output capture and display
   - [ ] Error handling and security measures
 - [ ] **Code Block Enhancements**
-  - [ ] "Run Code" button functionality
-  - [ ] Real-time code output
   - [ ] Code editing capabilities within chapters
   - [ ] Save and share code snippets
 
@@ -380,15 +381,14 @@ All core functionality has been successfully implemented and tested:
 3. **Chapter Management Polish**: Ensure chapter ordering and editing works seamlessly
 
 ### Phase 2: Interactive Code Execution (Next Priority)
-- [ ] **Code Execution Framework**
+- [x] **Client-Side JavaScript Execution**
+  - [x] "Run Code" button in markdown code blocks for JavaScript.
+  - [x] Real-time code output display for JS.
+  - [x] Error handling and security measures for client-side execution.
+- [ ] **Code Execution Framework (Server-Side)**
   - [ ] Server-side code execution sandbox
-  - [ ] JavaScript execution support
   - [ ] Python code execution support  
   - [ ] Code output capture and display
-- [ ] **Enhanced Code Blocks**
-  - [ ] "Run Code" button in markdown code blocks
-  - [ ] Real-time code output display
-  - [ ] Error handling and security measures
 
 ---
 
@@ -464,4 +464,3 @@ Phase 1 has been successfully completed with a fully functional authentication a
 2. Update book editing interface
 3. Implement access control checks
 ```
-

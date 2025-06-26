@@ -57,15 +57,12 @@ body {
 }
 
 .chapter-content code {
-  background-color: #f8f9fa;
-  padding: 0.2rem 0.4rem;
-  border-radius: 0.25rem;
+  /* Removed background, padding, and border-radius to make inline code less prominent. */
   font-size: 0.875em;
 }
 
 .chapter-content pre code {
-  background-color: transparent;
-  padding: 0;
+  font-size: 1em; /* Reset font-size for code inside pre blocks. */
 }
 
 /* Executable code blocks */
@@ -187,4 +184,104 @@ body {
 .img-responsive {
   max-width: 100%;
   height: auto;
+}
+/* === Code Execution Styles === */
+
+/* Adjust <pre> for toolbar */
+pre[class*="language-"] {
+    position: relative;
+    padding-top: 2.8em; /* Make space for the toolbar */
+    margin-top: 1.5em;
+}
+
+/* Toolbar container for buttons */
+.code-toolbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0.3em 0.8em;
+    background: #f7f7f7;
+    border-bottom: 1px solid #e0e0e0;
+    border-radius: 0.3em 0.3em 0 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* Run Code Button */
+.run-code-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.run-code-btn:hover {
+    background-color: #218838;
+}
+
+/* Edit Code Button */
+.edit-code-btn {
+    background-color: #6c757d; /* Bootstrap secondary grey */
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    margin-right: 8px; /* Space between Edit and Run buttons */
+}
+
+.edit-code-btn:hover {
+    background-color: #5c636a;
+}
+
+/* Code Output Area */
+.code-output {
+    background-color: #2d2d2d; /* Dark background for contrast */
+    color: #f1f1f1;
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.875em;
+    padding: 1rem;
+    margin-top: -1em; /* Connect visually to the code block above */
+    margin-bottom: 1rem;
+    border: 1px solid #444;
+    border-top: none;
+    border-radius: 0 0 0.3em 0.3em;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.code-output .output-header {
+    color: #999;
+    font-weight: bold;
+    margin-bottom: 0.5em;
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+
+.code-output pre {
+    margin: 0;
+    padding: 0;
+    background: none;
+    color: inherit;
+    border: none;
+    border-radius: 0;
+}
+
+.code-output .error-output {
+    color: #ff8a8a; /* Light red for errors on dark background */
+}
+
+.code-output .empty-output {
+    color: #888;
+    font-style: italic;
 }
